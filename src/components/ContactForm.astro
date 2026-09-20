@@ -1,0 +1,70 @@
+---
+import { SITE } from '../config';
+---
+
+<form class="form" method="post" action="/api/contact" data-contact-form data-email={SITE.email}>
+  <div class="form__row form__row--2">
+    <div class="field">
+      <label for="first_name">First name</label>
+      <input id="first_name" name="first_name" type="text" autocomplete="given-name" required maxlength="100" />
+    </div>
+    <div class="field">
+      <label for="last_name">Last name</label>
+      <input id="last_name" name="last_name" type="text" autocomplete="family-name" required maxlength="100" />
+    </div>
+  </div>
+  <div class="field">
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" autocomplete="email" required maxlength="254" />
+  </div>
+  <div class="field">
+    <label for="message">How can we help?</label>
+    <textarea id="message" name="message" required maxlength="5000"></textarea>
+  </div>
+
+  <!-- Spam trap. Real people never see or fill this in. -->
+  <div class="form__trap" aria-hidden="true">
+    <label for="company">Company</label>
+    <input id="company" name="company" type="text" tabindex="-1" autocomplete="off" />
+  </div>
+
+  <button class="btn" type="submit">Send message</button>
+  <p class="form__status" role="status" aria-live="polite" data-status></p>
+  <noscript>
+    <p>This form needs JavaScript. You can email <a href={`mailto:${SITE.email}`}>{SITE.email}</a> instead.</p>
+  </noscript>
+</form>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('[data-contact-form]');
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const status = form.querySelector<HTMLElement>('[data-status]')!;
+    const email = form.dataset.email ?? '';
+
+    button.disabled = true;
+    button.textContent = 'Sending...';
+    status.textContent = '';
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { Accept: 'application/json' },
+      });
+      const result = await response.json().catch(() => ({}));
+      if (response.ok && result.ok) {
+        window.location.assign('/thank-you');
+        return;
+      }
+      throw new Error(result.error || 'The message did not send.');
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'The message did not send.';
+      status.textContent = `${reason} Please try again, or email ${email} directly.`;
+      button.disabled = false;
+      button.textContent = 'Send message';
+    }
+  });
+</script>

@@ -1,0 +1,16 @@
+---
+import { SITE } from '../config';
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="wrap site-footer__inner">
+    <p>&copy; {SITE.legalName} {year}. All rights reserved.</p>
+    <ul>
+      <li><a href="/blog">Blog</a></li>
+      <li><a href={SITE.social.linkedinCompany} rel="noopener">LinkedIn</a></li>
+      <li><a href={SITE.social.instagramCompany} rel="noopener">Instagram</a></li>
+      <li><a href="/privacy">Privacy</a></li>
+    </ul>
+  </div>
+</footer>

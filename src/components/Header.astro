@@ -1,0 +1,58 @@
+---
+const nav = [
+  { href: '/#services', label: 'Services' },
+  { href: '/#testimonials', label: 'Testimonials' },
+  { href: '/#clients', label: 'Clients' },
+  { href: '/#about', label: 'About' },
+  { href: '/blog', label: 'Blog' },
+];
+const onBlog = Astro.url.pathname.startsWith('/blog');
+---
+
+<header class="site-header" data-header data-open="false">
+  <div class="wrap site-header__inner">
+    <a class="wordmark" href="/" aria-label="EQLBRM, home">
+      <svg class="wordmark__glyph" width="32" height="16" viewBox="0 0 32 16" aria-hidden="true">
+        <rect x="0.75" y="0.75" width="30.5" height="14.5" rx="7.25" fill="#d5e24b" stroke="#12302d" stroke-width="1.5"></rect>
+        <rect x="9.5" y="4" width="13" height="8" rx="4" fill="#f1f4f0"></rect>
+      </svg>
+      <span>EQLBRM</span>
+    </a>
+
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
+      Menu
+    </button>
+
+    <nav id="site-nav" class="site-nav" aria-label="Main">
+      <ul>
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={item.href === '/blog' && onBlog ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <a class="btn" href="/#contact">Get in touch</a>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  const toggle = document.querySelector<HTMLButtonElement>('[data-nav-toggle]');
+
+  function setOpen(open: boolean) {
+    header?.setAttribute('data-open', String(open));
+    toggle?.setAttribute('aria-expanded', String(open));
+    if (toggle) toggle.textContent = open ? 'Close' : 'Menu';
+  }
+
+  toggle?.addEventListener('click', () => setOpen(header?.getAttribute('data-open') !== 'true'));
+  header?.querySelectorAll('.site-nav a').forEach((link) => link.addEventListener('click', () => setOpen(false)));
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') setOpen(false);
+  });
+</script>

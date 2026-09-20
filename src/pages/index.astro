@@ -1,0 +1,150 @@
+---
+import Base from '../layouts/Base.astro';
+import Level from '../components/Level.astro';
+import ContactForm from '../components/ContactForm.astro';
+import { SITE } from '../config';
+import { services, facts, testimonial, clients } from '../data';
+import { firstExisting } from '../lib/assets';
+
+const photo = firstExisting(['images/tristan.jpg', 'images/tristan.jpeg', 'images/tristan.png', 'images/tristan.webp']);
+const logos = clients.map((client) => ({
+  ...client,
+  logo: firstExisting([`logos/${client.slug}.svg`, `logos/${client.slug}.png`, `logos/${client.slug}.webp`]),
+}));
+
+const organization = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfessionalService',
+  name: SITE.legalName,
+  url: SITE.url,
+  description: SITE.description,
+  email: SITE.email,
+  sameAs: [SITE.social.linkedinCompany, SITE.social.instagramCompany],
+  knowsAbout: ['Management consulting', 'Fractional CFO services', 'Health and wellness industry', 'Digital strategy'],
+};
+---
+
+<Base jsonLd={organization}>
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero__title">
+        <h1>Grow with balance</h1>
+      </div>
+
+      <Level />
+
+      <div class="hero__copy">
+        <p class="hero__lede">At EQLBRM, we believe in the power of balance - in business, in life, and in growth.</p>
+        <div class="hero__support">
+          <p>
+            As a boutique management consulting firm specializing in the Health and Wellness industry, we embrace the
+            philosophy that true progress occurs when all elements work in harmony.
+          </p>
+          <div class="hero__actions">
+            <a class="btn" href="#services">Learn more</a>
+            {SITE.bookingUrl && <a class="btn btn--ghost" href={SITE.bookingUrl}>Book a call</a>}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--flush-top" id="services">
+    <div class="wrap">
+      <h2>Services</h2>
+      <div class="services__list">
+        {
+          services.map((service) => (
+            <article class="service">
+              <h3>{service.title}</h3>
+              <div class="service__body">
+                <p class="service__tagline">{service.tagline}</p>
+                <p>{service.body}</p>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--ink" aria-label="EQLBRM at a glance">
+    <div class="wrap">
+      <ul class="facts">
+        {facts.map((fact) => <li>{fact}</li>)}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="testimonials">
+    <div class="wrap">
+      <h2 class="testimonial__title">What clients say</h2>
+      <figure class="testimonial">
+        <blockquote>
+          <p>{testimonial.quote}</p>
+        </blockquote>
+        <footer><strong>{testimonial.name}</strong>, {testimonial.role}</footer>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section section--flush-top" id="clients">
+    <div class="wrap">
+      <h2>Past clients and experience</h2>
+      <ul class="clients__list">
+        {
+          logos.map((client) => (
+            <li>
+              {client.logo ? <img src={client.logo} alt={client.name} loading="lazy" /> : client.name}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--ink" id="about">
+    <div class:list={['wrap', 'about', photo && 'about--photo']}>
+      <div class="about__text">
+        <h2>About the founder</h2>
+        <p class="about__hello">G'day my name is Tristan.</p>
+        <p class="about__roles">Trusted Advisor. Digital Enthusiast. Lifeaholic.</p>
+        <p>
+          A dynamic and innovative leader with deep global experience driving established and emerging businesses.
+        </p>
+        <p>Subject Matter Expert in the Health &amp; Wellness industry, with a core specialization in Recovery.</p>
+        <p>
+          Passionate about building high-performance teams, owning full end-to-end P&amp;L, executing compelling growth
+          strategies, and delivering digital business transformation.
+        </p>
+        <p>Proud husband, father, son, brother, Asian, and Aussie.</p>
+        <div class="link-row">
+          <a href={SITE.social.linkedinFounder} rel="noopener">LinkedIn</a>
+          <a href={SITE.social.instagramFounder} rel="noopener">Instagram</a>
+        </div>
+      </div>
+      {
+        photo && (
+          <div class="about__photo">
+            <img src={photo} alt="Tristan, founder of EQLBRM" loading="lazy" />
+          </div>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="section" id="contact">
+    <div class="wrap contact">
+      <div class="contact__intro">
+        <h2>Let's discuss your goals</h2>
+        <p class="lead">
+          Reach out to the EQLBRM team to explore how our expertise can elevate your business. We look forward to
+          collaborating with you on your journey to sustainable growth and success.
+        </p>
+        <p><a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
+        {SITE.bookingUrl && <p><a class="btn btn--ghost" href={SITE.bookingUrl}>Book a call</a></p>}
+      </div>
+      <ContactForm />
+    </div>
+  </section>
+</Base>

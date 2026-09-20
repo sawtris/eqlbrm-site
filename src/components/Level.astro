@@ -1,0 +1,39 @@
+---
+// Decorative spirit level. It swings and settles once on load, then follows the pointer and springs back to center.
+---
+
+<div class="level" aria-hidden="true" data-level>
+  <div class="level__body">
+    <div class="level__vial" data-vial>
+      <span class="level__mark level__mark--l"></span>
+      <span class="level__bubble" data-bubble></span>
+      <span class="level__mark level__mark--r"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const level = document.querySelector<HTMLElement>('[data-level]');
+  const vial = level?.querySelector<HTMLElement>('[data-vial]');
+  const bubble = level?.querySelector<HTMLElement>('[data-bubble]');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (level && vial && bubble && !reduce) {
+    const hero = level.closest('section') ?? level;
+    let armed = false;
+
+    // Wait for the intro swing to finish before the pointer takes over.
+    window.setTimeout(() => (armed = true), 3200);
+
+    hero.addEventListener('pointermove', (event) => {
+      if (!armed) return;
+      const rect = level.getBoundingClientRect();
+      const ratio = (event.clientX - rect.left) / rect.width - 0.5;
+      const travel = (vial.clientWidth - bubble.clientWidth) / 2 - 10;
+      const x = Math.max(-travel, Math.min(travel, ratio * 2 * travel));
+      bubble.style.setProperty('--bx', `${x}px`);
+    });
+
+    hero.addEventListener('pointerleave', () => bubble.style.setProperty('--bx', '0px'));
+  }
+</script>

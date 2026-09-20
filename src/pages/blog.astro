@@ -1,0 +1,66 @@
+---
+import Base from '../layouts/Base.astro';
+import { getPosts } from '../lib/sanity';
+import { formatDate } from '../lib/format';
+import { imageSrcSet, imageUrl } from '../lib/sanityImage';
+
+const posts = await getPosts();
+---
+
+<Base
+  title="Blog | EQLBRM LLC"
+  description="Practical thinking on strategy, operations, and growth from EQLBRM LLC."
+>
+  <div class="wrap">
+    <div class="page-head">
+      <h1>Blog</h1>
+      <p class="lead">Practical thinking on strategy, operations, and growth.</p>
+    </div>
+
+    <div class="page-body">
+      {
+        posts.length > 0 ? (
+          <ul class="post-list">
+            {posts.map((post) => {
+              const ref = post.coverImage?.asset?._ref;
+              return (
+                <li class:list={['post-row', ref && 'post-row--image']}>
+                  <p class="post-row__date">
+                    <time datetime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
+                  </p>
+                  <div>
+                    <h2>
+                      <a href={`/blog/${post.slug}`}>{post.title}</a>
+                    </h2>
+                    {post.excerpt && <p>{post.excerpt}</p>}
+                  </div>
+                  {ref && (
+                    <div class="post-row__thumb">
+                      <img
+                        src={imageUrl(ref, { w: 440, h: 330 })}
+                        srcset={`${imageUrl(ref, { w: 440, h: 330 })} 440w, ${imageUrl(ref, { w: 880, h: 660 })} 880w`}
+                        sizes="220px"
+                        width="440"
+                        height="330"
+                        alt={post.coverImage?.alt ?? ''}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <div class="empty">
+            <h2>First posts are on the way.</h2>
+            <p>
+              Nothing published yet. In the meantime, <a href="/#contact">get in touch</a> and we can talk directly.
+            </p>
+          </div>
+        )
+      }
+    </div>
+  </div>
+</Base>

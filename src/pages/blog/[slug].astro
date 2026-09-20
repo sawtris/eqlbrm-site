@@ -1,0 +1,74 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getPosts } from '../../lib/sanity';
+import type { Post } from '../../lib/sanity';
+import { formatDate } from '../../lib/format';
+import { renderBody } from '../../lib/portable';
+import { imageDims, imageSrcSet, imageUrl } from '../../lib/sanityImage';
+import { SITE } from '../../config';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post) => ({ params: { slug: post.slug }, props: { post } }));
+}
+
+interface Props {
+  post: Post;
+}
+
+const { post } = Astro.props;
+const html = renderBody(post.body);
+const ref = post.coverImage?.asset?._ref;
+const cover = ref ? imageDims(ref) : null;
+const shareImage = ref ? imageUrl(ref, { w: 1200, h: 630 }) : undefined;
+const description = post.seoDescription ?? post.excerpt ?? SITE.description;
+const title = `${post.seoTitle ?? post.title} | ${SITE.legalName}`;
+
+const article = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.title,
+  description,
+  datePublished: post.publishedAt,
+  ...(shareImage && { image: shareImage }),
+  mainEntityOfPage: `${SITE.url}/blog/${post.slug}`,
+  author: { '@type': 'Organization', name: SITE.legalName, url: SITE.url },
+  publisher: { '@type': 'Organization', name: SITE.legalName, url: SITE.url },
+};
+---
+
+<Base title={title} description={description} image={shareImage} type="article" publishedTime={post.publishedAt} jsonLd={article}>
+  <article class="post">
+    <div class="wrap">
+      <header class="post__head">
+        <a class="post__back" href="/blog">Back to blog</a>
+        <h1>{post.title}</h1>
+        <p class="post__meta"><time datetime={post.publishedAt}>{formatDate(post.publishedAt)}</time></p>
+      </header>
+
+      {
+        ref && cover && (
+          <figure class="post__cover">
+            <img
+              src={imageUrl(ref, { w: 1200 })}
+              srcset={imageSrcSet(ref)}
+              sizes="(min-width: 1000px) 980px, 100vw"
+              width={cover.width}
+              height={cover.height}
+              alt={post.coverImage?.alt ?? ''}
+              decoding="async"
+            />
+          </figure>
+        )
+      }
+
+      <div class="prose" set:html={html} />
+
+      <aside class="post__cta">
+        <h2>Want to talk it through?</h2>
+        <p>If something here sounds like your business, we're easy to reach.</p>
+        <a class="btn" href="/#contact">Get in touch</a>
+      </aside>
+    </div>
+  </article>
+</Base>
