@@ -610,7 +610,7 @@ p {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 1.5rem clamp(2rem, 5vw, 4rem);
+  gap: 1.75rem clamp(1.75rem, 3.4vw, 3rem);
 }
 
 .clients__list li {
@@ -622,12 +622,11 @@ p {
 
 .clients__list img {
   display: block;
-  height: 36px;
+  height: var(--logo-h, 36px);
   width: auto;
-  max-width: 170px;
+  max-width: 200px;
   object-fit: contain;
-  filter: grayscale(1);
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 /* ---------- About ---------- */

@@ -100,7 +100,7 @@ const organization = {
         {
           logos.map((client) => (
             <li>
-              {client.logo ? <img src={client.logo} alt={client.name} loading="lazy" /> : client.name}
+              {client.logo ? <img src={client.logo} alt={client.name} loading="lazy" style={`--logo-h:${client.height}px`} /> : client.name}
             </li>
           ))
         }

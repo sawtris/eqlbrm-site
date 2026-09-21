@@ -31,10 +31,12 @@ export const testimonial = {
 };
 
 // Drop a logo file at public/logos/<slug>.svg (or .png / .webp) and it replaces the text name automatically.
+// height is the display height in pixels. It is tuned per logo so wide wordmarks and stacked logos carry equal weight.
 export const clients = [
-  { name: 'Razorfish', slug: 'razorfish' },
-  { name: 'Equinox', slug: 'equinox' },
-  { name: 'Fhitting Room', slug: 'fhitting-room' },
-  { name: 'PwC', slug: 'pwc' },
-  { name: 'aescape', slug: 'aescape' },
+  { name: 'Razorfish', slug: 'razorfish', height: 30 },
+  { name: 'Equinox', slug: 'equinox', height: 20 },
+  { name: 'Fhitting Room', slug: 'fhitting-room', height: 18 },
+  { name: 'PwC', slug: 'pwc', height: 54 },
+  { name: 'aescape', slug: 'aescape', height: 30 },
+  { name: 'Estée Lauder', slug: 'estee-lauder', height: 42 },
 ];
