@@ -4,7 +4,7 @@ import { getPosts } from '../../lib/sanity';
 import type { Post } from '../../lib/sanity';
 import { formatDate } from '../../lib/format';
 import { renderBody } from '../../lib/portable';
-import { imageDims, imageSrcSet, imageUrl } from '../../lib/sanityImage';
+import { focalOf, imageSrcSetCrop, imageUrl } from '../../lib/sanityImage';
 import { SITE } from '../../config';
 
 export async function getStaticPaths() {
@@ -19,8 +19,8 @@ interface Props {
 const { post } = Astro.props;
 const html = renderBody(post.body);
 const ref = post.coverImage?.asset?._ref;
-const cover = ref ? imageDims(ref) : null;
-const shareImage = ref ? imageUrl(ref, { w: 1200, h: 630 }) : undefined;
+const focal = focalOf(post.coverImage);
+const shareImage = ref ? imageUrl(ref, { w: 1200, h: 630, focal }) : undefined;
 const description = post.seoDescription ?? post.excerpt ?? SITE.description;
 const title = `${post.seoTitle ?? post.title} | ${SITE.legalName}`;
 
@@ -47,14 +47,14 @@ const article = {
       </header>
 
       {
-        ref && cover && (
+        ref && (
           <figure class="post__cover">
             <img
-              src={imageUrl(ref, { w: 1200 })}
-              srcset={imageSrcSet(ref)}
+              src={imageUrl(ref, { w: 1600, h: 900, focal })}
+              srcset={imageSrcSetCrop(ref, [800, 1200, 1600], 16 / 9, focal)}
               sizes="(min-width: 1000px) 980px, 100vw"
-              width={cover.width}
-              height={cover.height}
+              width="1600"
+              height="900"
               alt={post.coverImage?.alt ?? ''}
               decoding="async"
             />

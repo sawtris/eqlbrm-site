@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro';
 import { getPosts } from '../lib/sanity';
 import { formatDate } from '../lib/format';
-import { imageSrcSet, imageUrl } from '../lib/sanityImage';
+import { focalOf, imageUrl } from '../lib/sanityImage';
 
 const posts = await getPosts();
 ---
@@ -23,6 +23,7 @@ const posts = await getPosts();
           <ul class="post-list">
             {posts.map((post) => {
               const ref = post.coverImage?.asset?._ref;
+              const focal = focalOf(post.coverImage);
               return (
                 <li class:list={['post-row', ref && 'post-row--image']}>
                   <p class="post-row__date">
@@ -37,8 +38,8 @@ const posts = await getPosts();
                   {ref && (
                     <div class="post-row__thumb">
                       <img
-                        src={imageUrl(ref, { w: 440, h: 330 })}
-                        srcset={`${imageUrl(ref, { w: 440, h: 330 })} 440w, ${imageUrl(ref, { w: 880, h: 660 })} 880w`}
+                        src={imageUrl(ref, { w: 440, h: 330, focal })}
+                        srcset={`${imageUrl(ref, { w: 440, h: 330, focal })} 440w, ${imageUrl(ref, { w: 880, h: 660, focal })} 880w`}
                         sizes="220px"
                         width="440"
                         height="330"

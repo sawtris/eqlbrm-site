@@ -11,6 +11,7 @@ const client = createClient({
 export interface CoverImage {
   alt?: string;
   asset?: { _ref: string };
+  hotspot?: { x: number; y: number; width: number; height: number };
 }
 
 export interface Post {

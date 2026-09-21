@@ -1,6 +1,6 @@
 # eqlbrm.io
 
-Astro site (static) with a Sanity blog and a small Cloudflare Worker for the contact form.
+Astro site (static) with a Sanity blog and a small Cloudflare Worker for the contact form, styled to the EQLBRM brand guidelines (v7).
 
 ```
 src/            pages, components, styles
@@ -73,4 +73,11 @@ The form posts to `/api/contact`, which sends the message through Resend to `CON
 
 - Have someone review `src/pages/privacy.astro`. It is a plain-language starting point, not legal advice.
 - Replace the placeholder blog intro line in `src/pages/blog.astro`.
-- Swap the wordmark and `public/og-default.png` after the logo redesign.
+- Replace the traced logo paths with your designer's SVG masters (see Brand below).
+
+## Brand
+
+- **Colors:** Midnight Navy `#0B132B`, Electric Teal `#00C2D1`, Bright Aqua `#2EE6D6`, Vivid Green `#31D16C`, Soft White `#F7F9FA`. Teal, aqua and green fail contrast for text on white, so text on light backgrounds uses navy, or Deep Teal `#007C89`. All tokens live at the top of `src/styles/global.css`.
+- **Type:** Inter, using its optical-size axis so large headings get the tighter Display cut.
+- **Logo:** `src/components/Logo.astro` draws the symbol, wordmark and lockup from `src/lib/logoPaths.ts`. Those paths were traced from the 600px PNGs in the brand book, so they are a stand-in. Ready-made copies are in `public/brand/`. When you have the designer's SVG masters, replace the paths (or the component) and the `public/brand/` files.
+- **Motion:** the two halves of the symbol arrive and lock together on the home page. It is switched off for visitors who prefer reduced motion.

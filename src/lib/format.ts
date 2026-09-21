@@ -2,7 +2,7 @@ const dateFormat = new Intl.DateTimeFormat('en-US', {
   year: 'numeric',
   month: 'long',
   day: 'numeric',
-  timeZone: 'UTC',
+  timeZone: 'America/New_York',
 });
 
 export function formatDate(iso: string): string {

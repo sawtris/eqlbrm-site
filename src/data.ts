@@ -16,11 +16,11 @@ export const services = [
   },
 ];
 
-export const facts = [
-  '20+ years of industry expertise.',
-  '50+ successful projects.',
-  '20+ satisfied clients.',
-  '10+ industry partnerships.',
+export const stats = [
+  { n: '20+', label: 'years of industry expertise' },
+  { n: '50+', label: 'successful projects' },
+  { n: '20+', label: 'satisfied clients' },
+  { n: '10+', label: 'industry partnerships' },
 ];
 
 export const testimonial = {

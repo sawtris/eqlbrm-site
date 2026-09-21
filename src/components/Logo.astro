@@ -1,0 +1,51 @@
+---
+import { LOCKUP, SYMBOL, WORDMARK } from '../lib/logoPaths';
+
+interface Props {
+  kind?: 'symbol' | 'wordmark' | 'lockup';
+  tone?: 'gradient' | 'white' | 'navy';
+  /** Unique per instance on a page so gradients never collide. */
+  uid?: string;
+  label?: string;
+  class?: string;
+}
+
+const { kind = 'symbol', tone = 'gradient', uid = 'logo', label, class: className } = Astro.props;
+const data = kind === 'symbol' ? SYMBOL : kind === 'wordmark' ? WORDMARK : LOCKUP;
+const gradientId = `eqlbrm-grad-${uid}`;
+const fill = tone === 'gradient' ? `url(#${gradientId})` : tone === 'white' ? '#ffffff' : '#0B132B';
+---
+
+<svg
+  class={className}
+  viewBox={`0 0 ${data.w} ${data.h}`}
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+  focusable="false"
+>
+  {
+    tone === 'gradient' && (
+      <defs>
+        <linearGradient id={gradientId} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2={data.w} y2="0">
+          <stop offset="0" stop-color="#00C2D1" />
+          <stop offset="1" stop-color="#31D16C" />
+        </linearGradient>
+      </defs>
+    )
+  }
+  <g fill={fill} fill-rule="evenodd">
+    {
+      kind === 'wordmark' ? (
+        <path d={(data as typeof WORDMARK).d} />
+      ) : (
+        <>
+          {(data as typeof SYMBOL).pieces.map((d, i) => (
+            <path class={i === 0 ? 'mark-left' : 'mark-right'} d={d} />
+          ))}
+          {kind === 'lockup' && <path d={(LOCKUP as typeof LOCKUP).wordmark} />}
+        </>
+      )
+    }
+  </g>
+</svg>

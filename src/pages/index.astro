@@ -1,9 +1,9 @@
 ---
 import Base from '../layouts/Base.astro';
-import Level from '../components/Level.astro';
+import Logo from '../components/Logo.astro';
 import ContactForm from '../components/ContactForm.astro';
 import { SITE } from '../config';
-import { services, facts, testimonial, clients } from '../data';
+import { services, stats, testimonial, clients } from '../data';
 import { firstExisting } from '../lib/assets';
 
 const photo = firstExisting(['images/tristan.jpg', 'images/tristan.jpeg', 'images/tristan.png', 'images/tristan.webp']);
@@ -17,6 +17,7 @@ const organization = {
   '@type': 'ProfessionalService',
   name: SITE.legalName,
   url: SITE.url,
+  logo: `${SITE.url}/brand/symbol-gradient.svg`,
   description: SITE.description,
   email: SITE.email,
   sameAs: [SITE.social.linkedinCompany, SITE.social.instagramCompany],
@@ -24,32 +25,44 @@ const organization = {
 };
 ---
 
-<Base jsonLd={organization}>
+<Base jsonLd={organization} headerTheme="dark">
   <section class="hero">
-    <div class="wrap">
-      <div class="hero__title">
-        <h1>Grow with balance</h1>
-      </div>
-
-      <Level />
-
-      <div class="hero__copy">
-        <p class="hero__lede">At EQLBRM, we believe in the power of balance - in business, in life, and in growth.</p>
-        <div class="hero__support">
-          <p>
-            As a boutique management consulting firm specializing in the Health and Wellness industry, we embrace the
-            philosophy that true progress occurs when all elements work in harmony.
-          </p>
-          <div class="hero__actions">
-            <a class="btn" href="#services">Learn more</a>
-            {SITE.bookingUrl && <a class="btn btn--ghost" href={SITE.bookingUrl}>Book a call</a>}
-          </div>
+    <div class="wrap hero__grid">
+      <div class="hero__text">
+        <h1>Grow with balance.</h1>
+        <p class="hero__lede">
+          At EQLBRM, we believe in the power of balance - in business, in life, and in growth.
+        </p>
+        <p class="hero__support">
+          As a boutique management consulting firm specializing in the Health and Wellness industry, we embrace the
+          philosophy that true progress occurs when all elements work in harmony.
+        </p>
+        <div class="hero__actions">
+          <a class="btn btn--teal" href="/#contact">Get in touch</a>
+          <a class="btn btn--outline-light" href="#services">Learn more</a>
+          {SITE.bookingUrl && <a class="btn btn--outline-light" href={SITE.bookingUrl}>Book a call</a>}
         </div>
       </div>
+      <div class="hero__mark" data-hero-mark>
+        <Logo kind="symbol" tone="gradient" uid="hero" />
+      </div>
+    </div>
+
+    <div class="wrap">
+      <ul class="stats">
+        {
+          stats.map((stat) => (
+            <li>
+              <span class="stats__n">{stat.n}</span>
+              <span class="stats__l">{stat.label}</span>
+            </li>
+          ))
+        }
+      </ul>
     </div>
   </section>
 
-  <section class="section section--flush-top" id="services">
+  <section class="section section--white" id="services">
     <div class="wrap">
       <h2>Services</h2>
       <div class="services__list">
@@ -68,27 +81,19 @@ const organization = {
     </div>
   </section>
 
-  <section class="section section--ink" aria-label="EQLBRM at a glance">
-    <div class="wrap">
-      <ul class="facts">
-        {facts.map((fact) => <li>{fact}</li>)}
-      </ul>
-    </div>
-  </section>
-
   <section class="section" id="testimonials">
     <div class="wrap">
-      <h2 class="testimonial__title">What clients say</h2>
       <figure class="testimonial">
+        <Logo kind="symbol" tone="gradient" uid="quote" class="testimonial__mark" />
         <blockquote>
           <p>{testimonial.quote}</p>
         </blockquote>
-        <footer><strong>{testimonial.name}</strong>, {testimonial.role}</footer>
+        <figcaption><strong>{testimonial.name}</strong>, {testimonial.role}</figcaption>
       </figure>
     </div>
   </section>
 
-  <section class="section section--flush-top" id="clients">
+  <section class="section section--white" id="clients">
     <div class="wrap">
       <h2>Past clients and experience</h2>
       <ul class="clients__list">
@@ -103,7 +108,7 @@ const organization = {
     </div>
   </section>
 
-  <section class="section section--ink" id="about">
+  <section class="section section--navy" id="about">
     <div class:list={['wrap', 'about', photo && 'about--photo']}>
       <div class="about__text">
         <h2>About the founder</h2>
@@ -142,7 +147,7 @@ const organization = {
           collaborating with you on your journey to sustainable growth and success.
         </p>
         <p><a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
-        {SITE.bookingUrl && <p><a class="btn btn--ghost" href={SITE.bookingUrl}>Book a call</a></p>}
+        {SITE.bookingUrl && <p><a class="btn btn--outline" href={SITE.bookingUrl}>Book a call</a></p>}
       </div>
       <ContactForm />
     </div>
