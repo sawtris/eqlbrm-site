@@ -13,7 +13,7 @@
   },
   "vars": {
     "CONTACT_TO_EMAIL": "tristan@eqlbrm.io",
-    "CONTACT_FROM_EMAIL": "EQLBRM Website <onboarding@resend.dev>"
+    "CONTACT_FROM_EMAIL": "EQLBRM Website <website@eqlbrm.io>"
   },
   "observability": { "enabled": true }
 }
