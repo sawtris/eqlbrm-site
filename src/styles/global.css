@@ -565,40 +565,73 @@ p {
   max-width: 32em;
 }
 
-/* ---------- Testimonial ---------- */
+/* ---------- Testimonials ---------- */
+
+.testimonials__title {
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+}
+
+.testimonials {
+  display: grid;
+  gap: 2.5rem clamp(2.5rem, 5vw, 4.5rem);
+}
+
+@media (min-width: 900px) {
+  .testimonials {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 
 .testimonial {
   margin: 0;
-  max-width: 44rem;
+  display: flex;
+  flex-direction: column;
+  padding-top: 1.75rem;
+  border-top: 2px solid var(--navy);
 }
 
 .testimonial__mark {
   display: block;
-  width: 56px;
+  width: 44px;
   height: auto;
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.5rem;
 }
 
 .testimonial blockquote {
   margin: 0;
+  flex: 1;
 }
 
 .testimonial blockquote p {
   color: var(--navy);
-  font-size: clamp(1.55rem, 3.1vw, 2.4rem);
+  font-size: clamp(1.3rem, 2.1vw, 1.6rem);
   font-weight: 500;
-  line-height: 1.28;
-  letter-spacing: -0.02em;
+  line-height: 1.4;
+  letter-spacing: -0.015em;
   margin: 0 0 1.75rem;
 }
 
 .testimonial figcaption {
   color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
 }
 
 .testimonial figcaption strong {
   color: var(--navy);
   font-weight: 650;
+}
+
+.testimonial__logo {
+  display: block;
+  /* Fixed-height row so both names line up even though the logos differ in height. */
+  box-sizing: content-box;
+  padding-block: calc((30px - var(--logo-h, 22px)) / 2);
+  height: var(--logo-h, 22px);
+  width: auto;
+  max-width: 180px;
+  opacity: 0.85;
 }
 
 /* ---------- Clients ---------- */
@@ -977,7 +1010,7 @@ p {
 }
 
 .prose > * + * {
-  margin-top: 1.60em;
+  margin-top: 1.25em;
 }
 
 .prose h2,
@@ -1004,7 +1037,7 @@ p {
 }
 
 .prose p {
-  margin-bottom: 0;
+  margin: 0;
 }
 
 .prose ul,

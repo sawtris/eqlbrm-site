@@ -3,10 +3,14 @@ import Base from '../layouts/Base.astro';
 import Logo from '../components/Logo.astro';
 import ContactForm from '../components/ContactForm.astro';
 import { SITE } from '../config';
-import { services, stats, testimonial, clients } from '../data';
+import { services, stats, testimonials, clients } from '../data';
 import { firstExisting } from '../lib/assets';
 
 const photo = firstExisting(['images/tristan.jpg', 'images/tristan.jpeg', 'images/tristan.png', 'images/tristan.webp']);
+const quotes = testimonials.map((t) => ({
+  ...t,
+  logoSrc: firstExisting([`logos/${t.logo}.svg`, `logos/${t.logo}.png`, `logos/${t.logo}.webp`]),
+}));
 const logos = clients.map((client) => ({
   ...client,
   logo: firstExisting([`logos/${client.slug}.svg`, `logos/${client.slug}.png`, `logos/${client.slug}.webp`]),
@@ -83,13 +87,33 @@ const organization = {
 
   <section class="section" id="testimonials">
     <div class="wrap">
-      <figure class="testimonial">
-        <Logo kind="symbol" tone="gradient" uid="quote" class="testimonial__mark" />
-        <blockquote>
-          <p>{testimonial.quote}</p>
-        </blockquote>
-        <figcaption><strong>{testimonial.name}</strong>, {testimonial.role}</figcaption>
-      </figure>
+      <h2 class="testimonials__title">What clients say</h2>
+      <div class="testimonials">
+        {
+          quotes.map((t, i) => (
+            <figure class="testimonial">
+              <Logo kind="symbol" tone="gradient" uid={`quote-${i}`} class="testimonial__mark" />
+              <blockquote>
+                <p>{t.quote}</p>
+              </blockquote>
+              <figcaption>
+                <span class="testimonial__who">
+                  <strong>{t.name}</strong>, {t.role}
+                </span>
+                {t.logoSrc && (
+                  <img
+                    class="testimonial__logo"
+                    src={t.logoSrc}
+                    alt={t.company}
+                    loading="lazy"
+                    style={`--logo-h:${t.logoHeight}px`}
+                  />
+                )}
+              </figcaption>
+            </figure>
+          ))
+        }
+      </div>
     </div>
   </section>
 
