@@ -1,18 +1,42 @@
 export const services = [
   {
+    id: 'business-strategy',
     title: 'Business Strategy',
     tagline: "Know what's next.",
     body: 'Our strategic business planning services are designed to guide your company towards sustainable, repeatable growth.',
+    points: [
+      'Growth strategy and multi-year planning',
+      'New concept and market-entry development',
+      'Brand and portfolio positioning',
+      'Go-to-market planning for launches',
+      'Partnership, M&A and investor readiness',
+    ],
   },
   {
+    id: 'digital-strategy',
     title: 'Digital Strategy',
     tagline: 'Use digital to compete.',
     body: 'We specialize in using digital to streamline processes, maximize productivity, and ultimately profitability.',
+    points: [
+      'Digital roadmap and tech stack review',
+      'Membership, app and e-commerce experience',
+      'Data, analytics and reporting setup',
+      'CRM and marketing technology',
+      'Process automation and AI adoption',
+    ],
   },
   {
+    id: 'financial-operational-services',
     title: 'Financial & Operational Services',
     tagline: 'Plan to win.',
     body: "We provide comprehensive finance and operations solutions to optimize resources and enhance your company's performance.",
+    points: [
+      'Fractional CFO support',
+      'Budgeting, forecasting and cash flow',
+      'P&L ownership and performance reviews',
+      'Pricing and revenue management',
+      'Operating model, systems and vendor negotiation',
+    ],
   },
 ];
 

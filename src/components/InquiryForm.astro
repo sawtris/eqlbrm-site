@@ -1,0 +1,125 @@
+---
+import { SITE } from '../config';
+---
+
+<div data-inquiry>
+  <form class="form" method="post" action="/api/inquiry" data-inquiry-form data-email={SITE.email}>
+    <div class="form__row form__row--2">
+      <div class="field">
+        <label for="iq_first_name">First name</label>
+        <input id="iq_first_name" name="first_name" type="text" autocomplete="given-name" required maxlength="100" />
+      </div>
+      <div class="field">
+        <label for="iq_last_name">Last name</label>
+        <input id="iq_last_name" name="last_name" type="text" autocomplete="family-name" required maxlength="100" />
+      </div>
+    </div>
+    <div class="field">
+      <label for="iq_email">Email</label>
+      <input id="iq_email" name="email" type="email" autocomplete="email" required maxlength="254" />
+    </div>
+
+    <fieldset class="choice">
+      <legend>How would you like to work together?</legend>
+      <label class="choice__item">
+        <input type="radio" name="engagement" value="paid" checked />
+        <span>Paid engagement</span>
+      </label>
+      <label class="choice__item">
+        <input type="radio" name="engagement" value="barter" />
+        <span>Services trade (barter)</span>
+      </label>
+    </fieldset>
+
+    <div class="field">
+      <label for="iq_message">What do you need help with?</label>
+      <textarea id="iq_message" name="message" required maxlength="5000"></textarea>
+    </div>
+
+    <div class="field" data-barter-field hidden>
+      <label for="iq_trade">What could you offer in trade?</label>
+      <textarea id="iq_trade" name="trade_offer" maxlength="3000"></textarea>
+    </div>
+
+    <!-- Spam trap. Real people never see or fill this in. -->
+    <div class="form__trap" aria-hidden="true">
+      <label for="iq_company">Company</label>
+      <input id="iq_company" name="company" type="text" tabindex="-1" autocomplete="off" />
+    </div>
+
+    <button class="btn" type="submit">Send inquiry</button>
+    <p class="form__status" role="status" aria-live="polite" data-status></p>
+    <noscript>
+      <p>This form needs JavaScript. You can email <a href={`mailto:${SITE.email}`}>{SITE.email}</a> instead.</p>
+    </noscript>
+  </form>
+
+  <div class="inquiry-result" data-result hidden tabindex="-1">
+    <h3>Thanks, your inquiry is in.</h3>
+    <p class="inquiry-result__rate">
+      Our rate is <strong data-rate></strong>.
+    </p>
+    <p data-result-paid>We'll reply by email to talk through scope and next steps.</p>
+    <p data-result-barter hidden>
+      We're open to a services trade. We'll value what you offer against that rate, and reply by email to agree the
+      terms.
+    </p>
+    <p><a class="btn btn--ghost" href="/blog">Read the blog</a></p>
+  </div>
+</div>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-inquiry]');
+  const form = root?.querySelector<HTMLFormElement>('[data-inquiry-form]');
+  const result = root?.querySelector<HTMLElement>('[data-result]');
+
+  if (root && form && result) {
+    const barterField = form.querySelector<HTMLElement>('[data-barter-field]')!;
+    const tradeInput = form.querySelector<HTMLTextAreaElement>('#iq_trade')!;
+
+    function syncEngagement() {
+      const barter = form!.querySelector<HTMLInputElement>('input[name="engagement"]:checked')?.value === 'barter';
+      barterField.hidden = !barter;
+      tradeInput.required = barter;
+    }
+    form.querySelectorAll('input[name="engagement"]').forEach((el) => el.addEventListener('change', syncEngagement));
+    syncEngagement();
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+      const status = form.querySelector<HTMLElement>('[data-status]')!;
+      const email = form.dataset.email ?? '';
+
+      button.disabled = true;
+      button.textContent = 'Sending...';
+      status.textContent = '';
+
+      try {
+        const response = await fetch('/api/inquiry', {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { Accept: 'application/json' },
+        });
+        const data = await response.json().catch(() => ({}));
+        if (response.ok && data.ok) {
+          root.querySelector<HTMLElement>('[data-rate]')!.textContent = data.rate || '';
+          const barter = data.engagement === 'barter';
+          root.querySelector<HTMLElement>('[data-result-paid]')!.hidden = barter;
+          root.querySelector<HTMLElement>('[data-result-barter]')!.hidden = !barter;
+          if (!data.rate) root.querySelector<HTMLElement>('.inquiry-result__rate')!.hidden = true;
+          form.hidden = true;
+          result.hidden = false;
+          result.focus();
+          return;
+        }
+        throw new Error(data.error || 'The inquiry did not send.');
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : 'The inquiry did not send.';
+        status.textContent = `${reason} Please try again, or email ${email} directly.`;
+        button.disabled = false;
+        button.textContent = 'Send inquiry';
+      }
+    });
+  }
+</script>

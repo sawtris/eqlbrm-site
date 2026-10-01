@@ -1,0 +1,74 @@
+---
+import Base from '../layouts/Base.astro';
+import InquiryForm from '../components/InquiryForm.astro';
+import { SITE } from '../config';
+import { services } from '../data';
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfessionalService',
+  name: SITE.legalName,
+  url: `${SITE.url}/services`,
+  description: SITE.description,
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'EQLBRM services',
+    itemListElement: services.map((s) => ({
+      '@type': 'Offer',
+      itemOffered: { '@type': 'Service', name: s.title, description: s.body },
+    })),
+  },
+};
+---
+
+<Base
+  title="Services | EQLBRM LLC"
+  description="Business strategy, digital strategy, and financial and operational services for health and wellness businesses."
+  jsonLd={schema}
+>
+  <div class="wrap">
+    <div class="page-head">
+      <h1>Services</h1>
+      <p class="lead">Three ways we help health and wellness businesses grow with balance.</p>
+    </div>
+
+    <div class="page-body">
+      <div class="services__list services__list--detail">
+        {
+          services.map((service) => (
+            <article class="service" id={service.id}>
+              <div>
+                <h2 class="service__title">{service.title}</h2>
+                <p class="service__tagline">{service.tagline}</p>
+              </div>
+              <div class="service__body">
+                <p>{service.body}</p>
+                <ul class="service__points">
+                  {service.points.map((point) => (
+                    <li>{point}</li>
+                  ))}
+                </ul>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+
+  <section class="section section--white" id="work-with-us">
+    <div class="wrap contact">
+      <div class="contact__intro">
+        <h2>Work with us</h2>
+        <p class="lead">
+          Tell us what you need and we'll share how we work, including our rate, as soon as you reach out.
+        </p>
+        <p>
+          Prefer a trade? We're open to a services swap. Choose that option and tell us what you could offer in return.
+        </p>
+        <p>Or email <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.</p>
+      </div>
+      <InquiryForm />
+    </div>
+  </section>
+</Base>

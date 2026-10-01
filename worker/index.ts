@@ -82,6 +82,82 @@ async function handleContact(request: Request, env: Env): Promise<Response> {
   return json({ ok: true });
 }
 
+// The charge-out rate is only ever returned after a valid inquiry, so it never appears in the static pages.
+const CHARGE_OUT_RATE = '$350 per hour';
+
+async function handleInquiry(request: Request, env: Env): Promise<Response> {
+  let form: FormData;
+  try {
+    form = await request.formData();
+  } catch {
+    return json({ ok: false, error: 'The form data could not be read.' }, 400);
+  }
+
+  // Spam trap: bots fill in every field, people never see this one.
+  if (clean(form.get('company'), 200)) return json({ ok: true, engagement: 'paid' });
+
+  const firstName = oneLine(clean(form.get('first_name'), 100));
+  const lastName = oneLine(clean(form.get('last_name'), 100));
+  const email = clean(form.get('email'), 254);
+  const message = clean(form.get('message'), 5000);
+  const barter = clean(form.get('engagement'), 20) === 'barter';
+  const tradeOffer = clean(form.get('trade_offer'), 3000);
+
+  if (!firstName || !lastName || !message) {
+    return json({ ok: false, error: 'Please fill in every field.' }, 400);
+  }
+  if (barter && !tradeOffer) {
+    return json({ ok: false, error: 'Please tell us what you could offer in trade.' }, 400);
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return json({ ok: false, error: 'That email address does not look right.' }, 400);
+  }
+  if (!env.RESEND_API_KEY || !env.CONTACT_TO_EMAIL || !env.CONTACT_FROM_EMAIL) {
+    console.error('Contact form is missing configuration (RESEND_API_KEY, CONTACT_TO_EMAIL, or CONTACT_FROM_EMAIL).');
+    return json({ ok: false, error: 'The form is not set up yet.' }, 500);
+  }
+
+  const fullName = `${firstName} ${lastName}`;
+  const kind = barter ? 'Services trade (barter)' : 'Paid engagement';
+  const text =
+    `New services inquiry from the EQLBRM website\n\nName: ${fullName}\nEmail: ${email}\nType: ${kind}\n\n` +
+    `What they need:\n${message}\n` +
+    (barter ? `\nWhat they could offer in trade:\n${tradeOffer}\n` : '');
+  const html =
+    `<p><strong>New services inquiry from the EQLBRM website</strong></p>` +
+    `<p>Name: ${escapeHtml(fullName)}<br>Email: ${escapeHtml(email)}<br>Type: ${escapeHtml(kind)}</p>` +
+    `<p><strong>What they need</strong></p><p style="white-space:pre-wrap">${escapeHtml(message)}</p>` +
+    (barter
+      ? `<p><strong>What they could offer in trade</strong></p><p style="white-space:pre-wrap">${escapeHtml(tradeOffer)}</p>`
+      : '');
+
+  let response: Response;
+  try {
+    response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        from: env.CONTACT_FROM_EMAIL,
+        to: [env.CONTACT_TO_EMAIL],
+        reply_to: email,
+        subject: `${barter ? 'Services trade' : 'Services'} inquiry from ${fullName}`,
+        text,
+        html,
+      }),
+    });
+  } catch (error) {
+    console.error('Could not reach Resend', error);
+    return json({ ok: false, error: 'The inquiry did not send.' }, 502);
+  }
+
+  if (!response.ok) {
+    console.error('Resend rejected the inquiry', response.status, await response.text());
+    return json({ ok: false, error: 'The inquiry did not send.' }, 502);
+  }
+
+  return json({ ok: true, engagement: barter ? 'barter' : 'paid', rate: CHARGE_OUT_RATE });
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -89,6 +165,11 @@ export default {
     if (url.pathname === '/api/contact') {
       if (request.method !== 'POST') return json({ ok: false, error: 'Method not allowed.' }, 405, { allow: 'POST' });
       return handleContact(request, env);
+    }
+
+    if (url.pathname === '/api/inquiry') {
+      if (request.method !== 'POST') return json({ ok: false, error: 'Method not allowed.' }, 405, { allow: 'POST' });
+      return handleInquiry(request, env);
     }
 
     return env.ASSETS.fetch(request);

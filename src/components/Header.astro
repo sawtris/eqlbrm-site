@@ -1,5 +1,6 @@
 ---
 import Logo from './Logo.astro';
+import { services } from '../data';
 
 interface Props {
   theme?: 'light' | 'dark';
@@ -7,13 +8,18 @@ interface Props {
 const { theme = 'light' } = Astro.props;
 
 const nav = [
-  { href: '/#services', label: 'Services' },
+  {
+    href: '/services',
+    label: 'Services',
+    children: services.map((s) => ({ href: `/services#${s.id}`, label: s.title })),
+  },
   { href: '/#testimonials', label: 'Testimonials' },
   { href: '/#clients', label: 'Clients' },
   { href: '/#about', label: 'About' },
   { href: '/blog', label: 'Blog' },
 ];
-const onBlog = Astro.url.pathname.startsWith('/blog');
+const path = Astro.url.pathname.replace(/(.)\/$/, '$1');
+const isCurrent = (href: string) => (href === '/blog' ? path.startsWith('/blog') : href === '/services' ? path === '/services' : false);
 ---
 
 <header class:list={['site-header', `site-header--${theme}`]} data-header data-open="false">
@@ -30,10 +36,19 @@ const onBlog = Astro.url.pathname.startsWith('/blog');
       <ul>
         {
           nav.map((item) => (
-            <li>
-              <a href={item.href} aria-current={item.href === '/blog' && onBlog ? 'page' : undefined}>
+            <li class:list={[item.children && 'has-sub']}>
+              <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
                 {item.label}
               </a>
+              {item.children && (
+                <ul class="subnav" aria-label={`${item.label} submenu`}>
+                  {item.children.map((child) => (
+                    <li>
+                      <a href={child.href}>{child.label}</a>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </li>
           ))
         }
