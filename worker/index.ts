@@ -155,7 +155,8 @@ async function handleInquiry(request: Request, env: Env): Promise<Response> {
     return json({ ok: false, error: 'The inquiry did not send.' }, 502);
   }
 
-  return json({ ok: true, engagement: barter ? 'barter' : 'paid', rate: CHARGE_OUT_RATE });
+  // Barter inquiries never get the rate back; terms are agreed by email.
+  return barter ? json({ ok: true, engagement: 'barter' }) : json({ ok: true, engagement: 'paid', rate: CHARGE_OUT_RATE });
 }
 
 export default {
