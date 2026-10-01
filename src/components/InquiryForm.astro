@@ -55,11 +55,13 @@ import { SITE } from '../config';
   </form>
 
   <div class="inquiry-result" data-result hidden tabindex="-1">
-    <h3>Thanks, your inquiry is in.</h3>
-    <p data-result-paid>We'll reply by email to talk through what you need and agree next steps.</p>
-    <p data-result-barter hidden>
-      We're open to a services trade. We'll reply by email to talk through what you're offering and agree the terms.
-    </p>
+    <div data-result-paid>
+      <h3>Thanks, your inquiry is in.</h3>
+      <p>We'll reply by email to talk through what you need and agree next steps.</p>
+    </div>
+    <div data-result-barter hidden>
+      <h3>Thanks, we'll be in touch.</h3>
+    </div>
     <p><a class="btn btn--ghost" href="/blog">Read the blog</a></p>
   </div>
 </div>
