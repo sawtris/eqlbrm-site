@@ -56,10 +56,7 @@ import { SITE } from '../config';
 
   <div class="inquiry-result" data-result hidden tabindex="-1">
     <h3>Thanks, your inquiry is in.</h3>
-    <p class="inquiry-result__rate">
-      Our rate is <strong data-rate></strong>.
-    </p>
-    <p data-result-paid>We'll reply by email to talk through scope and next steps.</p>
+    <p data-result-paid>We'll reply by email to talk through what you need and agree next steps.</p>
     <p data-result-barter hidden>
       We're open to a services trade. We'll reply by email to talk through what you're offering and agree the terms.
     </p>
@@ -102,11 +99,9 @@ import { SITE } from '../config';
         });
         const data = await response.json().catch(() => ({}));
         if (response.ok && data.ok) {
-          root.querySelector<HTMLElement>('[data-rate]')!.textContent = data.rate || '';
           const barter = data.engagement === 'barter';
           root.querySelector<HTMLElement>('[data-result-paid]')!.hidden = barter;
           root.querySelector<HTMLElement>('[data-result-barter]')!.hidden = !barter;
-          if (!data.rate) root.querySelector<HTMLElement>('.inquiry-result__rate')!.hidden = true;
           form.hidden = true;
           result.hidden = false;
           result.focus();

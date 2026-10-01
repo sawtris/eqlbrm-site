@@ -1259,12 +1259,3 @@ p {
   letter-spacing: -0.03em;
   margin-bottom: 1rem;
 }
-
-.inquiry-result__rate {
-  font-size: 1.25rem;
-  color: var(--navy);
-}
-
-.inquiry-result__rate strong {
-  color: var(--teal-text);
-}

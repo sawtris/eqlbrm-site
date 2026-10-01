@@ -82,9 +82,6 @@ async function handleContact(request: Request, env: Env): Promise<Response> {
   return json({ ok: true });
 }
 
-// The charge-out rate is only ever returned after a valid inquiry, so it never appears in the static pages.
-const CHARGE_OUT_RATE = '$350 per hour';
-
 async function handleInquiry(request: Request, env: Env): Promise<Response> {
   let form: FormData;
   try {
@@ -155,8 +152,7 @@ async function handleInquiry(request: Request, env: Env): Promise<Response> {
     return json({ ok: false, error: 'The inquiry did not send.' }, 502);
   }
 
-  // Barter inquiries never get the rate back; terms are agreed by email.
-  return barter ? json({ ok: true, engagement: 'barter' }) : json({ ok: true, engagement: 'paid', rate: CHARGE_OUT_RATE });
+  return json({ ok: true, engagement: barter ? 'barter' : 'paid' });
 }
 
 export default {
