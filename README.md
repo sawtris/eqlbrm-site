@@ -75,9 +75,9 @@ The footer has an email sign-up on every page. It posts to `/api/subscribe`.
 
 - Until Kit is connected, each sign-up is emailed to `CONTACT_TO_EMAIL` so none are lost. Import those into Kit later.
 - To connect Kit:
-  1. In Kit, create a form (Grow, Landing Pages & Forms) and copy its ID from the URL.
+  1. The Kit form is "Website footer", ID `9991456`, set as `KIT_FORM_ID` in `wrangler.jsonc`.
   2. In Kit, Settings, Developer, create a V4 API key.
-  3. Cloudflare: your Worker, Settings, Variables and Secrets. Add a **secret** `KIT_API_KEY` and a variable `KIT_FORM_ID`.
+  3. Cloudflare: your Worker, Settings, Variables and Secrets. Add a **secret** named `KIT_API_KEY`.
 - Double opt-in and the welcome email are set on the Kit form itself.
 
 ## Before launch

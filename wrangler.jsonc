@@ -13,7 +13,9 @@
   },
   "vars": {
     "CONTACT_TO_EMAIL": "tristan@eqlbrm.io",
-    "CONTACT_FROM_EMAIL": "EQLBRM Website <website@eqlbrm.io>"
+    "CONTACT_FROM_EMAIL": "EQLBRM Website <website@eqlbrm.io>",
+    // Kit form that footer sign-ups are added to ("Website footer"). KIT_API_KEY is a secret set in the dashboard.
+    "KIT_FORM_ID": "9991456"
   },
   "observability": { "enabled": true }
 }
