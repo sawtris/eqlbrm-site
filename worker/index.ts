@@ -5,6 +5,8 @@ interface Env {
   RESEND_API_KEY: string; // secret, set in the Cloudflare dashboard
   CONTACT_TO_EMAIL: string;
   CONTACT_FROM_EMAIL: string;
+  KIT_API_KEY?: string; // secret, set in the Cloudflare dashboard once Kit is set up
+  KIT_FORM_ID?: string; // the Kit form new subscribers are added to
 }
 
 const json = (body: Record<string, unknown>, status = 200, headers: Record<string, string> = {}) =>
@@ -155,6 +157,81 @@ async function handleInquiry(request: Request, env: Env): Promise<Response> {
   return json({ ok: true, engagement: barter ? 'barter' : 'paid' });
 }
 
+// Newsletter sign-up. Adds the email to a Kit form. Until Kit is connected (no KIT_API_KEY / KIT_FORM_ID),
+// each sign-up is emailed to CONTACT_TO_EMAIL instead, so nobody who subscribes is lost.
+async function handleSubscribe(request: Request, env: Env): Promise<Response> {
+  let form: FormData;
+  try {
+    form = await request.formData();
+  } catch {
+    return json({ ok: false, error: 'The form data could not be read.' }, 400);
+  }
+
+  // Spam trap: bots fill in every field, people never see this one.
+  if (clean(form.get('company'), 200)) return json({ ok: true });
+
+  const email = clean(form.get('email'), 254).toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return json({ ok: false, error: 'That email address does not look right.' }, 400);
+  }
+  const referrer = clean(request.headers.get('referer'), 500);
+
+  if (env.KIT_API_KEY && env.KIT_FORM_ID) {
+    const headers = { 'X-Kit-Api-Key': env.KIT_API_KEY, 'content-type': 'application/json', accept: 'application/json' };
+    try {
+      // Kit requires the subscriber to exist before it can be added to a form.
+      const created = await fetch('https://api.kit.com/v4/subscribers', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ email_address: email }),
+      });
+      if (!created.ok) {
+        console.error('Kit rejected the subscriber', created.status, await created.text());
+        return json({ ok: false, error: 'The sign-up did not go through.' }, 502);
+      }
+      const added = await fetch(`https://api.kit.com/v4/forms/${encodeURIComponent(env.KIT_FORM_ID)}/subscribers`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ email_address: email, ...(referrer ? { referrer } : {}) }),
+      });
+      if (!added.ok) {
+        console.error('Kit could not add the subscriber to the form', added.status, await added.text());
+        return json({ ok: false, error: 'The sign-up did not go through.' }, 502);
+      }
+      return json({ ok: true });
+    } catch (error) {
+      console.error('Could not reach Kit', error);
+      return json({ ok: false, error: 'The sign-up did not go through.' }, 502);
+    }
+  }
+
+  // Fallback until Kit is connected.
+  if (!env.RESEND_API_KEY || !env.CONTACT_TO_EMAIL || !env.CONTACT_FROM_EMAIL) {
+    console.error('Subscribe form has neither Kit nor Resend configured.');
+    return json({ ok: false, error: 'Sign-ups are not set up yet.' }, 500);
+  }
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        from: env.CONTACT_FROM_EMAIL,
+        to: [env.CONTACT_TO_EMAIL],
+        subject: `New newsletter sign-up: ${email}`,
+        text: `New newsletter sign-up from the EQLBRM website\n\nEmail: ${email}\nPage: ${referrer || 'unknown'}\n\nAdd them to Kit once it is set up.\n`,
+      }),
+    });
+    if (!response.ok) {
+      console.error('Resend rejected the sign-up notice', response.status, await response.text());
+      return json({ ok: false, error: 'The sign-up did not go through.' }, 502);
+    }
+  } catch (error) {
+    console.error('Could not reach Resend', error);
+    return json({ ok: false, error: 'The sign-up did not go through.' }, 502);
+  }
+  return json({ ok: true });
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -167,6 +244,11 @@ export default {
     if (url.pathname === '/api/inquiry') {
       if (request.method !== 'POST') return json({ ok: false, error: 'Method not allowed.' }, 405, { allow: 'POST' });
       return handleInquiry(request, env);
+    }
+
+    if (url.pathname === '/api/subscribe') {
+      if (request.method !== 'POST') return json({ ok: false, error: 'Method not allowed.' }, 405, { allow: 'POST' });
+      return handleSubscribe(request, env);
     }
 
     return env.ASSETS.fetch(request);

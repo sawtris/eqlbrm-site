@@ -1,0 +1,66 @@
+---
+// Newsletter sign-up, shown above the footer links on every page. Posts to /api/subscribe (see worker/index.ts).
+---
+
+<div class="subscribe" data-subscribe>
+  <div class="subscribe__text">
+    <h2 class="subscribe__title" id="subscribe-title">Stay in the loop</h2>
+    <p>Occasional notes on strategy, operations, and growth in health and wellness.</p>
+  </div>
+  <form class="subscribe__form" method="post" action="/api/subscribe" aria-labelledby="subscribe-title" data-subscribe-form>
+    <label class="visually-hidden" for="subscribe_email">Email address</label>
+    <div class="subscribe__row">
+      <input
+        id="subscribe_email"
+        name="email"
+        type="email"
+        autocomplete="email"
+        placeholder="Your email"
+        required
+        maxlength="254"
+      />
+      <button class="btn btn--teal" type="submit">Subscribe</button>
+    </div>
+    <!-- Spam trap. Real people never see or fill this in. -->
+    <div class="form__trap" aria-hidden="true">
+      <label for="subscribe_company">Company</label>
+      <input id="subscribe_company" name="company" type="text" tabindex="-1" autocomplete="off" />
+    </div>
+    <p class="subscribe__status" role="status" aria-live="polite" data-status></p>
+  </form>
+</div>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('[data-subscribe-form]');
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const status = form.querySelector<HTMLElement>('[data-status]')!;
+
+    button.disabled = true;
+    button.textContent = 'Subscribing...';
+    status.textContent = '';
+    status.classList.remove('is-error');
+
+    try {
+      const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { Accept: 'application/json' },
+      });
+      const result = await response.json().catch(() => ({}));
+      if (response.ok && result.ok) {
+        form.querySelector<HTMLElement>('.subscribe__row')!.hidden = true;
+        status.textContent = "Thanks, you're on the list.";
+        return;
+      }
+      throw new Error(result.error || 'The sign-up did not go through.');
+    } catch (error) {
+      status.textContent = `${error instanceof Error ? error.message : 'The sign-up did not go through.'} Please try again.`;
+      status.classList.add('is-error');
+      button.disabled = false;
+      button.textContent = 'Subscribe';
+    }
+  });
+</script>

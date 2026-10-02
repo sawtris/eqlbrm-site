@@ -69,6 +69,17 @@ The form posts to `/api/contact`, which sends the message through Resend to `CON
 - After verifying eqlbrm.io in Resend, change `CONTACT_FROM_EMAIL` to `EQLBRM Website <website@eqlbrm.io>`.
 - Spam protection is a hidden field only. If spam shows up, add Cloudflare Turnstile.
 
+## Newsletter sign-up (Kit)
+
+The footer has an email sign-up on every page. It posts to `/api/subscribe`.
+
+- Until Kit is connected, each sign-up is emailed to `CONTACT_TO_EMAIL` so none are lost. Import those into Kit later.
+- To connect Kit:
+  1. In Kit, create a form (Grow, Landing Pages & Forms) and copy its ID from the URL.
+  2. In Kit, Settings, Developer, create a V4 API key.
+  3. Cloudflare: your Worker, Settings, Variables and Secrets. Add a **secret** `KIT_API_KEY` and a variable `KIT_FORM_ID`.
+- Double opt-in and the welcome email are set on the Kit form itself.
+
 ## Before launch
 
 - Have someone review `src/pages/privacy.astro`. It is a plain-language starting point, not legal advice.

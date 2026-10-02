@@ -1259,3 +1259,88 @@ p {
   letter-spacing: -0.03em;
   margin-bottom: 1rem;
 }
+
+/* ---------- Newsletter sign-up (footer) ---------- */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.subscribe {
+  display: grid;
+  gap: 1.25rem 3rem;
+  align-items: center;
+  padding-bottom: clamp(2.5rem, 5vw, 3.5rem);
+  margin-bottom: clamp(2.5rem, 5vw, 3.5rem);
+  border-bottom: 1px solid var(--line-navy);
+}
+
+@media (min-width: 860px) {
+  .subscribe {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+.subscribe__title {
+  color: var(--white);
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: 0.5rem;
+}
+
+.subscribe__text p {
+  margin: 0;
+  color: var(--on-navy);
+  max-width: 30em;
+}
+
+.subscribe__form {
+  position: relative;
+}
+
+.subscribe__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.subscribe__row[hidden] {
+  display: none;
+}
+
+.subscribe__row input {
+  flex: 1 1 14rem;
+  min-width: 0;
+  font: inherit;
+  font-size: 1.05rem;
+  color: var(--navy);
+  background: var(--white);
+  border: 1.5px solid var(--white);
+  border-radius: var(--radius);
+  padding: 0.75rem 0.9rem;
+}
+
+.subscribe__row input:focus-visible {
+  outline: 3px solid var(--aqua);
+  outline-offset: 2px;
+}
+
+.subscribe__status {
+  min-height: 1.5em;
+  margin: 0.6rem 0 0;
+  color: var(--aqua);
+  font-weight: 500;
+}
+
+.subscribe__status.is-error {
+  color: #ffb4a8;
+}

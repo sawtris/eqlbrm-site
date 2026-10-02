@@ -1,10 +1,14 @@
 ---
 import Logo from './Logo.astro';
+import SubscribeForm from './SubscribeForm.astro';
 import { SITE } from '../config';
 const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer">
+  <div class="wrap">
+    <SubscribeForm />
+  </div>
   <div class="wrap site-footer__inner">
     <div class="site-footer__brand">
       <a href="/" aria-label="EQLBRM, home">
