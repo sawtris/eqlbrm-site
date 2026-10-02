@@ -7,6 +7,7 @@ interface Env {
   CONTACT_FROM_EMAIL: string;
   KIT_API_KEY?: string; // secret, set in the Cloudflare dashboard once Kit is set up
   KIT_FORM_ID?: string; // the Kit form new subscribers are added to
+  SANITY_WEBHOOK_SECRET?: string; // secret, shared with the Sanity "new post" webhook
 }
 
 const json = (body: Record<string, unknown>, status = 200, headers: Record<string, string> = {}) =>
@@ -232,6 +233,111 @@ async function handleSubscribe(request: Request, env: Env): Promise<Response> {
   return json({ ok: true });
 }
 
+// ---------- New blog post -> Kit draft broadcast ----------
+// Sanity calls this (signed webhook) when a post is first published. It creates a DRAFT broadcast in Kit
+// (teaser + link) and emails a heads-up. Nothing is sent to subscribers until Tristan presses Send in Kit.
+
+const SITE_URL = 'https://www.eqlbrm.io';
+
+// Sanity signs webhooks as `t=<ms timestamp>,v1=<base64url HMAC-SHA256 of "<t>.<body>">`.
+async function sanitySignatureIsValid(header: string | null, body: string, secret: string): Promise<boolean> {
+  const match = header?.trim().match(/^t=(\d+)[, ]+v1=([^, ]+)$/);
+  if (!match) return false;
+  const [, timestamp, received] = match;
+  // Reject anything older than an hour (leaves room for Sanity's retries). A replay could only ever create a duplicate draft.
+  if (Math.abs(Date.now() - Number(timestamp)) > 60 * 60 * 1000) return false;
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const mac = new Uint8Array(await crypto.subtle.sign('HMAC', key, enc.encode(`${timestamp}.${body}`)));
+  const expected = btoa(String.fromCharCode(...mac)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  if (expected.length !== received.length) return false;
+  let diff = 0;
+  for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ received.charCodeAt(i);
+  return diff === 0;
+}
+
+interface NewPost {
+  _id?: string;
+  title?: string;
+  slug?: string;
+  excerpt?: string;
+  publishedAt?: string;
+  coverUrl?: string;
+  coverAlt?: string;
+}
+
+function broadcastHtml(post: Required<Pick<NewPost, 'title' | 'slug'>> & NewPost): string {
+  const url = `${SITE_URL}/blog/${encodeURIComponent(post.slug)}`;
+  const image = post.coverUrl
+    ? `<p><a href="${url}"><img src="${escapeHtml(post.coverUrl)}?w=1200&amp;fit=max&amp;auto=format" alt="${escapeHtml(post.coverAlt ?? '')}" width="600" style="max-width:100%;height:auto;border-radius:10px" /></a></p>`
+    : '';
+  return (
+    image +
+    `<h1>${escapeHtml(post.title)}</h1>` +
+    (post.excerpt ? `<p>${escapeHtml(post.excerpt)}</p>` : '') +
+    `<p><a href="${url}" style="display:inline-block;padding:12px 22px;background:#0B132B;color:#ffffff;border-radius:10px;text-decoration:none;font-weight:600">Read the post</a></p>` +
+    `<p>Grow with balance.<br>Tristan</p>`
+  );
+}
+
+async function handleNewPost(request: Request, env: Env): Promise<Response> {
+  if (!env.SANITY_WEBHOOK_SECRET) return json({ ok: false, error: 'Not configured.' }, 500);
+  const body = await request.text();
+  if (!(await sanitySignatureIsValid(request.headers.get('sanity-webhook-signature'), body, env.SANITY_WEBHOOK_SECRET))) {
+    return json({ ok: false, error: 'Invalid signature.' }, 401);
+  }
+
+  let post: NewPost;
+  try {
+    post = JSON.parse(body);
+  } catch {
+    return json({ ok: false, error: 'Body is not JSON.' }, 400);
+  }
+  // Ignore drafts and incomplete posts. Returning 200 stops Sanity retrying them.
+  if (!post.title || !post.slug || post._id?.startsWith('drafts.')) return json({ ok: true, skipped: true });
+  if (!env.KIT_API_KEY) return json({ ok: false, error: 'Kit is not connected.' }, 500);
+
+  const kit = await fetch('https://api.kit.com/v4/broadcasts', {
+    method: 'POST',
+    headers: { 'X-Kit-Api-Key': env.KIT_API_KEY, 'content-type': 'application/json', accept: 'application/json' },
+    body: JSON.stringify({
+      subject: post.title,
+      preview_text: (post.excerpt ?? '').slice(0, 150),
+      description: `Blog: ${post.title}`,
+      content: broadcastHtml({ ...post, title: post.title, slug: post.slug }),
+      public: false,
+      send_at: null, // draft: nothing goes out until it is sent from Kit
+    }),
+  });
+  if (!kit.ok) {
+    // A non-2xx makes Sanity retry later, which is what we want if Kit is briefly down.
+    console.error('Kit rejected the broadcast draft', kit.status, await kit.text());
+    return json({ ok: false, error: 'Kit rejected the draft.' }, 502);
+  }
+
+  // Heads-up email. Best effort: the draft already exists, so a failure here is only logged.
+  if (env.RESEND_API_KEY && env.CONTACT_TO_EMAIL && env.CONTACT_FROM_EMAIL) {
+    const future = post.publishedAt && Date.parse(post.publishedAt) > Date.now();
+    const text =
+      `A draft newsletter for your new post is ready in Kit.\n\n` +
+      `Post: ${post.title}\nLink: ${SITE_URL}/blog/${post.slug}\n\n` +
+      (future ? `Heads up: this post is scheduled for ${post.publishedAt}. Wait until it is live before sending.\n\n` : '') +
+      `Open Kit, go to Broadcasts, check the draft and press Send when you're happy.\n`;
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        from: env.CONTACT_FROM_EMAIL,
+        to: [env.CONTACT_TO_EMAIL],
+        subject: `Newsletter draft ready: ${oneLine(post.title)}`,
+        text,
+      }),
+    }).catch((error) => console.error('Could not send the draft heads-up', error));
+  }
+
+  return json({ ok: true });
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -249,6 +355,11 @@ export default {
     if (url.pathname === '/api/subscribe') {
       if (request.method !== 'POST') return json({ ok: false, error: 'Method not allowed.' }, 405, { allow: 'POST' });
       return handleSubscribe(request, env);
+    }
+
+    if (url.pathname === '/api/hooks/new-post') {
+      if (request.method !== 'POST') return json({ ok: false, error: 'Method not allowed.' }, 405, { allow: 'POST' });
+      return handleNewPost(request, env);
     }
 
     return env.ASSETS.fetch(request);

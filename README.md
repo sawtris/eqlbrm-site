@@ -80,6 +80,21 @@ The footer has an email sign-up on every page. It posts to `/api/subscribe`.
   3. Cloudflare: your Worker, Settings, Variables and Secrets. Add a **secret** named `KIT_API_KEY`.
 - Double opt-in and the welcome email are set on the Kit form itself.
 
+## Newsletter draft for each new blog post
+
+When a post is first published in Sanity, a webhook calls `/api/hooks/new-post`. The Worker creates a **draft** broadcast in Kit (cover image, title, summary, "Read the post" button) and emails a heads-up. Nothing goes to subscribers until you press Send in Kit, Broadcasts.
+
+Setup:
+1. Cloudflare: your Worker, Settings, Variables and Secrets. Add a **secret** `SANITY_WEBHOOK_SECRET` (any long random string).
+2. Sanity: sanity.io/manage, your project, API, Webhooks, Create webhook.
+   - Name: `New post to Kit draft`
+   - URL: `https://www.eqlbrm.io/api/hooks/new-post`
+   - Dataset: `production`
+   - Trigger on: **Create** only (edits and re-publishes do not make new drafts)
+   - Filter: `_type == "post"`
+   - Projection: `{_id, title, "slug": slug.current, excerpt, publishedAt, "coverUrl": coverImage.asset->url, "coverAlt": coverImage.alt}`
+   - Drafts: off. HTTP method: POST. Secret: the same string as step 1.
+
 ## Before launch
 
 - Have someone review `src/pages/privacy.astro`. It is a plain-language starting point, not legal advice.
