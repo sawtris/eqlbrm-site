@@ -61,6 +61,12 @@ The editor then lives at `https://eqlbrm.sanity.studio`.
 
 Treat the deploy hook URL like a password.
 
+### Scheduled posts
+
+A post with a future publish date stays hidden until the next rebuild after that date. To make that happen on its own, the Worker checks Sanity every 15 minutes and calls the deploy hook only when a post's publish date has just passed. Scheduled posts go live within about 15 minutes of their date and time.
+
+Setup: Cloudflare, your Worker, Settings, Variables and Secrets. Add a **secret** named `DEPLOY_HOOK_URL` with the same deploy hook URL as above.
+
 ## Contact form email
 
 The form posts to `/api/contact`, which sends the message through Resend to `CONTACT_TO_EMAIL`.
