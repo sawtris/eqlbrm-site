@@ -8,6 +8,7 @@ interface Env {
   KIT_API_KEY?: string; // secret, set in the Cloudflare dashboard once Kit is set up
   KIT_FORM_ID?: string; // the Kit form new subscribers are added to
   SANITY_WEBHOOK_SECRET?: string; // secret, shared with the Sanity "new post" webhook
+  DEPLOY_HOOK_URL?: string; // secret, the Cloudflare deploy hook that rebuilds the site
 }
 
 const json = (body: Record<string, unknown>, status = 200, headers: Record<string, string> = {}) =>
@@ -338,7 +339,49 @@ async function handleNewPost(request: Request, env: Env): Promise<Response> {
   return json({ ok: true });
 }
 
+// ---------- Scheduled posts go live on their own ----------
+// The site is static, so a post with a future publish date stays hidden until the next rebuild after that date.
+// Every 15 minutes (see "triggers" in wrangler.jsonc) this asks Sanity whether any post's publish date passed
+// since the last check, and only then calls the deploy hook. No due post means no rebuild.
+
+const SANITY_QUERY_URL = 'https://iba4i6lg.api.sanity.io/v2025-01-01/data/query/production';
+const CHECK_WINDOW_MS = 16 * 60 * 1000; // a minute longer than the cron interval, so nothing falls in a gap
+
+async function rebuildIfPostsAreDue(scheduledTime: number, env: Env): Promise<void> {
+  if (!env.DEPLOY_HOOK_URL) {
+    console.error('Scheduled publish check skipped: DEPLOY_HOOK_URL is not set.');
+    return;
+  }
+  const since = new Date(scheduledTime - CHECK_WINDOW_MS).toISOString();
+  const until = new Date(scheduledTime).toISOString();
+  const query =
+    'count(*[_type == "post" && defined(slug.current) && !(_id in path("drafts.**")) && publishedAt > $since && publishedAt <= $until])';
+  const url = new URL(SANITY_QUERY_URL);
+  url.searchParams.set('query', query);
+  url.searchParams.set('$since', JSON.stringify(since));
+  url.searchParams.set('$until', JSON.stringify(until));
+
+  const response = await fetch(url.toString());
+  if (!response.ok) {
+    console.error('Scheduled publish check: Sanity query failed', response.status, await response.text());
+    return;
+  }
+  const { result } = (await response.json()) as { result?: number };
+  if (!result) return;
+
+  const hook = await fetch(env.DEPLOY_HOOK_URL, { method: 'POST' });
+  if (!hook.ok) {
+    console.error('Scheduled publish check: deploy hook failed', hook.status, await hook.text());
+    return;
+  }
+  console.log(`Scheduled publish check: ${result} post(s) became due, rebuild started.`);
+}
+
 export default {
+  async scheduled(controller: { scheduledTime: number }, env: Env, ctx: { waitUntil(promise: Promise<unknown>): void }) {
+    ctx.waitUntil(rebuildIfPostsAreDue(controller.scheduledTime, env));
+  },
+
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 

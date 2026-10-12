@@ -17,5 +17,7 @@
     // Kit form that footer sign-ups are added to ("Website footer"). KIT_API_KEY is a secret set in the dashboard.
     "KIT_FORM_ID": "9991456"
   },
+  // Every 15 minutes, rebuild the site if a scheduled blog post's publish date has just passed (see worker/index.ts).
+  "triggers": { "crons": ["*/15 * * * *"] },
   "observability": { "enabled": true }
 }
