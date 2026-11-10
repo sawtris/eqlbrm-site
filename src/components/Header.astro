@@ -13,9 +13,6 @@ const nav = [
     label: 'Services',
     children: services.map((s) => ({ href: `/services#${s.id}`, label: s.title })),
   },
-  { href: '/#testimonials', label: 'Testimonials' },
-  { href: '/#clients', label: 'Clients' },
-  { href: '/#about', label: 'About' },
   { href: '/blog', label: 'Blog' },
 ];
 const path = Astro.url.pathname.replace(/(.)\/$/, '$1');
