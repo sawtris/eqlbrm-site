@@ -479,3 +479,181 @@
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
+
+/* ---------- Sideways page (wide screens only; the script adds .is-horizontal to <html>) ---------- */
+
+.home-hero__hint {
+  display: none;
+}
+
+.is-horizontal body {
+  overflow-x: hidden;
+}
+
+.is-horizontal .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--soft);
+  border-bottom: 1px solid var(--line);
+}
+
+.is-horizontal .hscroll__sticky {
+  position: sticky;
+  top: var(--hdr, 0px);
+  height: calc(100vh - var(--hdr, 0px));
+  height: calc(100dvh - var(--hdr, 0px));
+  overflow: hidden;
+}
+
+.is-horizontal .hscroll__track {
+  display: flex;
+  height: 100%;
+  width: max-content;
+  will-change: transform;
+}
+
+.is-horizontal .hpanel {
+  flex: 0 0 auto;
+  width: 100vw;
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-block: clamp(1.5rem, 4vh, 3rem);
+}
+
+.is-horizontal .hpanel > .wrap {
+  width: 100%;
+}
+
+/* A thin progress line along the bottom of the row shows how far along the page you are. */
+.is-horizontal .hscroll__sticky::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 100%;
+  background: linear-gradient(90deg, var(--teal), var(--green));
+  transform-origin: left center;
+  transform: scaleX(var(--hscroll-progress, 0));
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Hero fills the first screen and invites the reader sideways. */
+.is-horizontal .home-hero {
+  min-height: 0;
+  padding: 0;
+}
+
+.is-horizontal .home-hero__inner {
+  height: 100%;
+}
+
+.is-horizontal .home-hero__hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: var(--navy);
+}
+
+.is-horizontal .home-hero__hint span {
+  display: inline-block;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .is-horizontal .home-hero__hint span {
+    animation: hint-nudge 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes hint-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(6px);
+  }
+}
+
+/* Video strip: tiles sized by the screen height so all three fit. */
+.is-horizontal .home-film__grid {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.is-horizontal .video-slot {
+  flex: 0 1 auto;
+}
+
+.is-horizontal .video-slot__frame {
+  height: min(54vh, 30rem);
+  width: auto;
+  aspect-ratio: 4 / 5;
+}
+
+/* Services: the cards simply continue the row, so the panel is as wide as they are. */
+.is-horizontal .home-services {
+  width: max-content;
+  min-width: 100vw;
+  flex-direction: row;
+  align-items: center;
+  gap: 2.5rem;
+  padding-inline: max(var(--gutter), calc((100vw - var(--wrap)) / 2 + var(--gutter))) 4rem;
+}
+
+.is-horizontal .home-services > .home-services__head {
+  flex: 0 0 22rem;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 22rem;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.is-horizontal .home-services__track {
+  overflow: visible;
+  padding: 0;
+  scroll-snap-type: none;
+}
+
+.is-horizontal .service-card {
+  flex-basis: 26rem;
+  min-height: min(27rem, calc(100vh - var(--hdr, 0px) - 6rem));
+}
+
+.is-horizontal .home-services__controls {
+  display: none;
+}
+
+/* Testimonials and About get a little more room than one screen. */
+.is-horizontal #testimonials,
+.is-horizontal #about {
+  width: max(100vw, 72rem);
+}
+
+.is-horizontal .hpanel--footer {
+  background: var(--navy);
+  width: 100vw;
+}
+
+.is-horizontal .hpanel--footer .site-footer {
+  padding-block: 0;
+}
+
+/* Section headings scale down a touch so every panel fits a laptop screen. */
+.is-horizontal .hpanel h2 {
+  font-size: clamp(1.9rem, 3.2vw, 2.8rem);
+}
+
+.is-horizontal .home-intro__title {
+  font-size: clamp(2rem, 3.4vw, 3rem);
+}
