@@ -460,11 +460,29 @@ const organization = {
       goTo(panel);
     });
 
-    // Opening the page at /#contact (or similar) lands on that panel.
+    // Opening the page at /#contact (or arriving from another page's nav link) lands on that panel.
+    // The browser's own jump-to-#section would scroll down instead, so we take over once the page has settled.
+    const panelForHash = () =>
+      location.hash
+        ? document.getElementById(decodeURIComponent(location.hash.slice(1)))?.closest<HTMLElement>('.hpanel') ?? null
+        : null;
+    if (location.hash && 'scrollRestoration' in history) history.scrollRestoration = 'manual';
+    const landOnHash = () => {
+      sticky.scrollLeft = 0;
+      const panel = panelForHash();
+      if (panel && on) {
+        measure();
+        goTo(panel, false);
+      }
+    };
     if (location.hash) {
-      const panel = document.getElementById(decodeURIComponent(location.hash.slice(1)))?.closest<HTMLElement>('.hpanel');
-      if (panel && on) requestAnimationFrame(() => goTo(panel, false));
+      requestAnimationFrame(landOnHash);
+      window.addEventListener('load', () => setTimeout(landOnHash, 50), { once: true });
     }
+    window.addEventListener('hashchange', landOnHash);
+    sticky.addEventListener('scroll', () => {
+      sticky.scrollLeft = 0;
+    });
 
     // Keyboard focus moving into an off-screen panel brings that panel into view.
     document.addEventListener('focusin', (event) => {

@@ -478,6 +478,8 @@
   height: calc(100vh - var(--hdr, 0px));
   height: calc(100dvh - var(--hdr, 0px));
   overflow: hidden;
+  /* clip, unlike hidden, can't be scrolled by the browser's own jump-to-#section, which would knock the row out of line */
+  overflow: clip;
 }
 
 .is-horizontal .hscroll__track {
