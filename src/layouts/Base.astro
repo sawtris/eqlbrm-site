@@ -14,6 +14,8 @@ interface Props {
   publishedTime?: string;
   jsonLd?: object | object[];
   headerTheme?: 'light' | 'dark';
+  /** The page renders its own footer (the sideways homepage puts it in the last panel). */
+  hideFooter?: boolean;
 }
 
 const {
@@ -25,6 +27,7 @@ const {
   publishedTime,
   jsonLd,
   headerTheme = 'light',
+  hideFooter = false,
 } = Astro.props;
 
 // Canonical URLs never end in a slash (except the home page) and always use the www host.
@@ -84,6 +87,6 @@ const gtm = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date(
     <main id="main">
       <slot />
     </main>
-    <Footer />
+    {!hideFooter && <Footer />}
   </body>
 </html>

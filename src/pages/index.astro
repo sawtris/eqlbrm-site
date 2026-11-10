@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import Logo from '../components/Logo.astro';
 import ContactForm from '../components/ContactForm.astro';
+import Footer from '../components/Footer.astro';
 import BalanceFlow from '../components/BalanceFlow.astro';
 import VideoSlot from '../components/VideoSlot.astro';
 import { SITE } from '../config';
@@ -42,9 +43,13 @@ const organization = {
 };
 ---
 
-<Base jsonLd={organization} headerTheme="light">
+<Base jsonLd={organization} headerTheme="light" hideFooter>
+  <!-- On wide screens the whole page travels sideways as you scroll (see the script below); phones scroll down as normal. -->
+  <div class="hscroll" data-hscroll>
+  <div class="hscroll__sticky">
+  <div class="hscroll__track" data-hscroll-track>
   <!-- Hero: full-bleed motion, chaos settling into balance -->
-  <section class="home-hero" data-balance-root>
+  <section class="hpanel home-hero" data-balance-root>
     <BalanceFlow />
     <div class="wrap home-hero__inner">
       <div class="home-hero__panel">
@@ -62,12 +67,13 @@ const organization = {
       <div class="home-hero__replay">
         <p class="home-hero__caption" aria-live="polite" data-balance-caption>Chaos first.</p>
         <button class="btn btn--outline btn--small" type="button" data-balance-replay>Watch it again</button>
+        <p class="home-hero__hint" aria-hidden="true">Scroll to explore <span>&rarr;</span></p>
       </div>
     </div>
   </section>
 
   <!-- Operator credibility -->
-  <section class="section home-intro">
+  <section class="hpanel section home-intro">
     <div class="wrap">
       <h2 class="home-intro__title">We've run the clubs, the studios and the spas. Now we help the people who run them.</h2>
       <ul class="home-creds">
@@ -98,7 +104,7 @@ const organization = {
   </section>
 
   <!-- Video strip. Drop files into public/media/ to replace the placeholders (see VideoSlot.astro). -->
-  <section class="home-film" aria-labelledby="film-title">
+  <section class="hpanel home-film" aria-labelledby="film-title">
     <div class="wrap">
       <h2 id="film-title" class="home-film__title">What balance looks like</h2>
       <div class="home-film__grid">
@@ -128,10 +134,10 @@ const organization = {
   </section>
 
   <!-- Services: side-scrolling cards with a drag slider -->
-  <section class="home-services" id="services" aria-labelledby="services-title" data-scroller>
+  <section class="hpanel home-services" id="services" aria-labelledby="services-title" data-scroller>
     <div class="wrap home-services__head">
       <h2 id="services-title">What we work on</h2>
-      <p>Where wellness businesses tend to tip over, and how we bring them back. Drag or scroll sideways.</p>
+      <p>Where wellness businesses tend to tip over, and how we bring them back.</p>
     </div>
 
     <div class="home-services__track" tabindex="0" aria-label="Services, scroll sideways" data-scroller-track>
@@ -171,7 +177,7 @@ const organization = {
     </div>
   </section>
 
-  <section class="section" id="testimonials">
+  <section class="hpanel section" id="testimonials">
     <div class="wrap">
       <h2 class="testimonials__title">What clients say</h2>
       <div class="testimonials">
@@ -203,7 +209,7 @@ const organization = {
     </div>
   </section>
 
-  <section class="section section--white" id="clients">
+  <section class="hpanel section section--white" id="clients">
     <div class="wrap">
       <h2>Past clients and experience</h2>
       <ul class="clients__list">
@@ -220,7 +226,7 @@ const organization = {
 
   {
     latestPosts.length > 0 && (
-      <section class="section" id="insights" aria-labelledby="insights-title">
+      <section class="hpanel section" id="insights" aria-labelledby="insights-title">
         <div class="wrap">
           <div class="home-blog__head">
             <h2 id="insights-title">From the blog</h2>
@@ -263,7 +269,7 @@ const organization = {
     )
   }
 
-  <section class="section section--navy" id="about">
+  <section class="hpanel section section--navy" id="about">
     <div class:list={['wrap', 'about', photo && 'about--photo']}>
       <div class="about__text">
         <h2>About the founder</h2>
@@ -293,7 +299,7 @@ const organization = {
     </div>
   </section>
 
-  <section class="section" id="contact">
+  <section class="hpanel section" id="contact">
     <div class="wrap contact">
       <div class="contact__intro">
         <h2>What's out of balance?</h2>
@@ -304,6 +310,12 @@ const organization = {
       <ContactForm />
     </div>
   </section>
+  <div class="hpanel hpanel--footer">
+    <Footer />
+  </div>
+  </div>
+  </div>
+  </div>
 </Base>
 
 <script>
@@ -365,5 +377,120 @@ const organization = {
       { rootMargin: '200px 0px' },
     );
     videos.forEach((video) => io.observe(video));
+  }
+</script>
+
+<script>
+  // Sideways homepage. On wide screens the panels sit in one long row, the row stays pinned under the header,
+  // and scrolling down (wheel, trackpad, keys, scrollbar) moves it left to right. Phones and short windows scroll
+  // down as normal. Native scrolling stays in charge, so back/forward, find-in-page and keyboard paging still work.
+  const html = document.documentElement;
+  const wrap = document.querySelector<HTMLElement>('[data-hscroll]');
+  const sticky = wrap?.querySelector<HTMLElement>('.hscroll__sticky');
+  const track = document.querySelector<HTMLElement>('[data-hscroll-track]');
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  const wide = window.matchMedia('(min-width: 900px) and (min-height: 560px)');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  if (wrap && sticky && track) {
+    let on = false;
+    let max = 0;
+    let start = 0;
+    let headerH = 0;
+    let ticking = false;
+
+    const isHome = (path: string) => path === '/' || path === '/index' || path === '/index.html';
+
+    function position() {
+      ticking = false;
+      if (!on) return;
+      const x = Math.min(max, Math.max(0, window.scrollY - start));
+      track!.style.transform = `translate3d(${-x}px, 0, 0)`;
+      html.style.setProperty('--hscroll-progress', max ? String(x / max) : '0');
+    }
+
+    function measure() {
+      headerH = header?.offsetHeight ?? 0;
+      html.style.setProperty('--hdr', `${headerH}px`);
+      const shouldBeOn = wide.matches;
+      if (shouldBeOn !== on) {
+        on = shouldBeOn;
+        html.classList.toggle('is-horizontal', on);
+        if (!on) {
+          wrap!.style.height = '';
+          track!.style.transform = '';
+          return;
+        }
+      }
+      if (!on) return;
+      max = Math.max(0, track!.scrollWidth - window.innerWidth);
+      wrap!.style.height = `${max + window.innerHeight - headerH}px`;
+      start = wrap!.getBoundingClientRect().top + window.scrollY - headerH;
+      position();
+    }
+
+    function goTo(panel: HTMLElement, smooth = true) {
+      const x = Math.min(max, panel.offsetLeft);
+      window.scrollTo({ top: start + x, behavior: smooth && !reduce.matches ? 'smooth' : 'auto' });
+    }
+
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (on && !ticking) {
+          ticking = true;
+          requestAnimationFrame(position);
+        }
+      },
+      { passive: true },
+    );
+    window.addEventListener('resize', measure);
+    new ResizeObserver(measure).observe(track);
+    wide.addEventListener('change', measure);
+    measure();
+
+    // In-page links (header nav, hero buttons) jump to the right panel instead of scrolling the hidden row.
+    document.addEventListener('click', (event) => {
+      if (!on || event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey) return;
+      const link = (event.target as Element).closest<HTMLAnchorElement>('a[href*="#"]');
+      if (!link) return;
+      const url = new URL(link.href, location.href);
+      if (url.origin !== location.origin || !isHome(url.pathname) || !isHome(location.pathname) || !url.hash) return;
+      const target = document.getElementById(decodeURIComponent(url.hash.slice(1)));
+      const panel = target?.closest<HTMLElement>('.hpanel');
+      if (!panel || !track.contains(panel)) return;
+      event.preventDefault();
+      history.pushState(null, '', url.hash);
+      goTo(panel);
+    });
+
+    // Opening the page at /#contact (or similar) lands on that panel.
+    if (location.hash) {
+      const panel = document.getElementById(decodeURIComponent(location.hash.slice(1)))?.closest<HTMLElement>('.hpanel');
+      if (panel && on) requestAnimationFrame(() => goTo(panel, false));
+    }
+
+    // Keyboard focus moving into an off-screen panel brings that panel into view.
+    document.addEventListener('focusin', (event) => {
+      if (!on) return;
+      sticky.scrollLeft = 0;
+      const panel = (event.target as Element).closest<HTMLElement>('.hpanel');
+      if (!panel || !track.contains(panel)) return;
+      const x = Math.min(max, Math.max(0, window.scrollY - start));
+      const left = panel.offsetLeft;
+      if (left + panel.offsetWidth <= x || left >= x + window.innerWidth) goTo(panel, false);
+    });
+
+    // Left and right arrow keys move along the row too.
+    document.addEventListener('keydown', (event) => {
+      if (!on || event.altKey || event.metaKey || event.ctrlKey) return;
+      const el = event.target as HTMLElement;
+      if (el.closest('input, textarea, select, [contenteditable="true"], [data-scroller-track]')) return;
+      if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+        event.preventDefault();
+        const step = window.innerWidth * 0.8 * (event.key === 'ArrowRight' ? 1 : -1);
+        window.scrollBy({ top: step, behavior: reduce.matches ? 'auto' : 'smooth' });
+      }
+    });
   }
 </script>
