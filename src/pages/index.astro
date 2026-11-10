@@ -6,7 +6,7 @@ import Footer from '../components/Footer.astro';
 import BalanceFlow from '../components/BalanceFlow.astro';
 import VideoSlot from '../components/VideoSlot.astro';
 import { SITE } from '../config';
-import { services, stats, testimonials, clients } from '../data';
+import { stats, testimonials, clients } from '../data';
 import { firstExisting } from '../lib/assets';
 import { getPosts } from '../lib/sanity';
 import { formatDate } from '../lib/format';
@@ -24,11 +24,6 @@ const logos = clients.map((client) => ({
 }));
 const latestPosts = (await getPosts()).slice(0, 3);
 
-// Service cards for the side-scrolling row, plus a closing card that links to the full services page.
-const cardTones = ['teal', 'white', 'green'];
-const serviceCards = services.map((service, i) => ({ ...service, tone: cardTones[i % cardTones.length] }));
-const cardCount = serviceCards.length + 1;
-const pad = (n: number) => String(n).padStart(2, '0');
 
 const organization = {
   '@context': 'https://schema.org',
@@ -61,7 +56,7 @@ const organization = {
         </p>
         <div class="home-hero__actions">
           <a class="btn" href="/#contact">Let's untangle it</a>
-          <a class="btn btn--outline" href="#services">What we do</a>
+          <a class="btn btn--outline" href="/services">What we do</a>
         </div>
         <p class="home-hero__hint" aria-hidden="true">Scroll to explore <span>&rarr;</span></p>
       </div>
@@ -129,49 +124,6 @@ const organization = {
     </div>
   </section>
 
-  <!-- Services: side-scrolling cards with a drag slider -->
-  <section class="hpanel home-services" id="services" aria-labelledby="services-title" data-scroller>
-    <div class="wrap home-services__head">
-      <h2 id="services-title">What we work on</h2>
-      <p>Where wellness businesses tend to tip over, and how we bring them back.</p>
-    </div>
-
-    <div class="home-services__track" tabindex="0" aria-label="Services, scroll sideways" data-scroller-track>
-      {
-        serviceCards.map((service, i) => (
-          <article class:list={['service-card', `service-card--${service.tone}`]}>
-            <p class="service-card__n">{pad(i + 1)}</p>
-            <div class="service-card__body">
-              <h3>{service.title}</h3>
-              <p class="service-card__tagline">{service.tagline}</p>
-              <ul>
-                {service.points.map((point) => (
-                  <li>{point}</li>
-                ))}
-              </ul>
-              <a class="service-card__link" href={`/services#${service.id}`}>
-                More on {service.title.toLowerCase()}
-              </a>
-            </div>
-          </article>
-        ))
-      }
-      <article class="service-card service-card--deep">
-        <p class="service-card__n">{pad(cardCount)}</p>
-        <div class="service-card__body">
-          <h3>Not sure where it starts?</h3>
-          <p class="service-card__tagline">Most problems touch all three.</p>
-          <a class="btn btn--teal" href="/services">See all services</a>
-        </div>
-      </article>
-    </div>
-
-    <div class="wrap home-services__controls">
-      <label for="services-scroll">Drag to explore</label>
-      <input id="services-scroll" type="range" min="0" max="100" step="1" value="0" data-scroller-range />
-      <span class="home-services__count" aria-live="polite"><span data-scroller-count>01</span> / {pad(cardCount)}</span>
-    </div>
-  </section>
 
   <section class="hpanel section" id="testimonials">
     <div class="wrap">
@@ -315,45 +267,6 @@ const organization = {
 </Base>
 
 <script>
-  // Side-scrolling services: keep the slider, the counter and the track in step.
-  document.querySelectorAll<HTMLElement>('[data-scroller]').forEach((root) => {
-    const track = root.querySelector<HTMLElement>('[data-scroller-track]');
-    const range = root.querySelector<HTMLInputElement>('[data-scroller-range]');
-    const count = root.querySelector<HTMLElement>('[data-scroller-count]');
-    if (!track || !range) return;
-    const total = track.children.length;
-    const maxScroll = () => Math.max(0, track.scrollWidth - track.clientWidth);
-    const setCount = (pct: number) => {
-      if (count) count.textContent = String(Math.min(total, Math.round((pct / 100) * (total - 1)) + 1)).padStart(2, '0');
-    };
-    const sync = () => {
-      // Hide the slider when everything already fits on screen.
-      root.classList.toggle('is-static', maxScroll() < 4);
-    };
-
-    let ticking = false;
-    track.addEventListener('scroll', () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        const max = maxScroll();
-        const pct = max > 0 ? Math.round((track.scrollLeft / max) * 100) : 0;
-        range.value = String(pct);
-        setCount(pct);
-        ticking = false;
-      });
-    });
-
-    range.addEventListener('input', () => {
-      const pct = Number(range.value);
-      track.scrollTo({ left: (pct / 100) * maxScroll(), behavior: 'auto' });
-      setCount(pct);
-    });
-
-    window.addEventListener('resize', sync);
-    sync();
-  });
-
   // Looping videos play only while on screen, and never for people who prefer reduced motion.
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const videos = document.querySelectorAll<HTMLVideoElement>('[data-loop-video]');
@@ -499,7 +412,7 @@ const organization = {
     document.addEventListener('keydown', (event) => {
       if (!on || event.altKey || event.metaKey || event.ctrlKey) return;
       const el = event.target as HTMLElement;
-      if (el.closest('input, textarea, select, [contenteditable="true"], [data-scroller-track]')) return;
+      if (el.closest('input, textarea, select, [contenteditable="true"]')) return;
       if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
         event.preventDefault();
         const step = window.innerWidth * 0.8 * (event.key === 'ArrowRight' ? 1 : -1);
