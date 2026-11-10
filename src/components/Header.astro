@@ -1,30 +1,22 @@
 ---
 import Logo from './Logo.astro';
 import { services } from '../data';
-import { getPosts } from '../lib/sanity';
 
 interface Props {
   theme?: 'light' | 'dark';
 }
 const { theme = 'light' } = Astro.props;
 
-// On the homepage every link stays inside the sideways row: Services and Blog jump to their panels
-// (Blog only when there are posts to show). Other pages link to the full Services and Blog pages.
-const onHome = ['/', '/index', '/index.html'].includes(Astro.url.pathname);
-const hasPosts = (await getPosts()).length > 0;
-const servicesHref = onHome ? '/#services' : '/services';
-const blogHref = onHome && hasPosts ? '/#insights' : '/blog';
-
 const nav = [
   {
-    href: servicesHref,
+    href: '/services',
     label: 'Services',
     children: services.map((s) => ({ href: `/services#${s.id}`, label: s.title })),
   },
   { href: '/#testimonials', label: 'Testimonials' },
   { href: '/#clients', label: 'Clients' },
   { href: '/#about', label: 'About' },
-  { href: blogHref, label: 'Blog' },
+  { href: '/blog', label: 'Blog' },
 ];
 const path = Astro.url.pathname.replace(/(.)\/$/, '$1');
 const isCurrent = (href: string) => (href === '/blog' ? path.startsWith('/blog') : href === '/services' ? path === '/services' : false);
