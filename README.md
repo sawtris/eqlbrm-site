@@ -16,6 +16,7 @@ public/         favicon, OG image, robots.txt, headers
 - **Founder photo:** save as `public/images/tristan.jpg` (or .png / .webp). It appears in the About section automatically.
 - **Client logos:** save as `public/logos/<name>.svg` (or .png / .webp) using these names: `razorfish`, `equinox`, `fhitting-room`, `pwc`, `aescape`. Each one replaces its text name automatically.
 - **Booking button:** paste your Cal.com link into `bookingUrl` in `src/config.ts`.
+- **Homepage videos:** the "What balance looks like" strip has three slots named `studio`, `recovery` and `service`. Save each loop as `public/media/<name>.mp4` (silent, 4:5, ideally under 4 MB) and a still frame as `public/media/<name>.jpg`. A slot with only the still shows the still; a slot with neither shows its placeholder brief.
 
 ## Run it locally (optional)
 

@@ -2,9 +2,15 @@
 import Base from '../layouts/Base.astro';
 import Logo from '../components/Logo.astro';
 import ContactForm from '../components/ContactForm.astro';
+import BalanceFlow from '../components/BalanceFlow.astro';
+import VideoSlot from '../components/VideoSlot.astro';
 import { SITE } from '../config';
 import { services, stats, testimonials, clients } from '../data';
 import { firstExisting } from '../lib/assets';
+import { getPosts } from '../lib/sanity';
+import { formatDate } from '../lib/format';
+import { focalOf, imageUrl } from '../lib/sanityImage';
+import '../styles/home.css';
 
 const photo = firstExisting(['images/tristan.jpg', 'images/tristan.jpeg', 'images/tristan.png', 'images/tristan.webp']);
 const quotes = testimonials.map((t) => ({
@@ -15,6 +21,13 @@ const logos = clients.map((client) => ({
   ...client,
   logo: firstExisting([`logos/${client.slug}.svg`, `logos/${client.slug}.png`, `logos/${client.slug}.webp`]),
 }));
+const latestPosts = (await getPosts()).slice(0, 3);
+
+// Service cards for the side-scrolling row, plus a closing card that links to the full services page.
+const cardTones = ['teal', 'white', 'green'];
+const serviceCards = services.map((service, i) => ({ ...service, tone: cardTones[i % cardTones.length] }));
+const cardCount = serviceCards.length + 1;
+const pad = (n: number) => String(n).padStart(2, '0');
 
 const organization = {
   '@context': 'https://schema.org',
@@ -29,36 +42,54 @@ const organization = {
 };
 ---
 
-<Base jsonLd={organization} headerTheme="dark">
-  <section class="hero">
-    <div class="wrap hero__grid">
-      <div class="hero__text">
-        <h1>Grow with balance.</h1>
-        <p class="hero__lede">
-          At EQLBRM, we believe in the power of balance - in business, in life, and in growth.
+<Base jsonLd={organization} headerTheme="light">
+  <!-- Hero: full-bleed motion, chaos settling into balance -->
+  <section class="home-hero" data-balance-root>
+    <BalanceFlow />
+    <div class="wrap home-hero__inner">
+      <div class="home-hero__panel">
+        <p class="eyebrow">Wellness consulting</p>
+        <h1>Find your <span class="text-gradient">balance.</span></h1>
+        <p class="home-hero__lede">
+          EQLBRM is a boutique consulting firm specializing in wellness.
+          <span>We turn chaos into calm.</span>
         </p>
-        <p class="hero__support">
-          As a boutique management consulting firm specializing in the Health and Wellness industry, we embrace the
-          philosophy that true progress occurs when all elements work in harmony.
-        </p>
-        <div class="hero__actions">
-          <a class="btn btn--teal" href="/#contact">Get in touch</a>
-          <a class="btn btn--outline-light" href="#services">Learn more</a>
-          {SITE.bookingUrl && <a class="btn btn--outline-light" href={SITE.bookingUrl}>Book a call</a>}
+        <div class="home-hero__actions">
+          <a class="btn" href="/#contact">Let's untangle it</a>
+          <a class="btn btn--outline" href="#services">What we do</a>
         </div>
       </div>
-      <div class="hero__mark" data-hero-mark>
-        <Logo kind="symbol" tone="gradient" uid="hero" />
+      <div class="home-hero__replay">
+        <p class="home-hero__caption" aria-live="polite" data-balance-caption>Chaos first.</p>
+        <button class="btn btn--outline btn--small" type="button" data-balance-replay>Watch it again</button>
       </div>
     </div>
+  </section>
 
+  <!-- Operator credibility -->
+  <section class="section home-intro">
     <div class="wrap">
-      <ul class="stats">
+      <h2 class="home-intro__title">We've run the clubs, the studios and the spas. Now we help the people who run them.</h2>
+      <ul class="home-creds">
+        <li>
+          <p class="eyebrow">Spa and recovery</p>
+          <p>Led spa and regeneration globally at Equinox.</p>
+        </li>
+        <li>
+          <p class="eyebrow">Boutique studios</p>
+          <p>Ran Fhitting Room through to its acquisition.</p>
+        </li>
+        <li>
+          <p class="eyebrow">Big-box clubs</p>
+          <p>Owned strategy and systems at New York Sports Clubs.</p>
+        </li>
+      </ul>
+      <ul class="home-stats">
         {
           stats.map((stat) => (
             <li>
-              <span class="stats__n">{stat.n}</span>
-              <span class="stats__l">{stat.label}</span>
+              <span class="home-stats__n">{stat.n}</span>
+              <span class="home-stats__l">{stat.label}</span>
             </li>
           ))
         }
@@ -66,23 +97,77 @@ const organization = {
     </div>
   </section>
 
-  <section class="section section--white" id="services">
+  <!-- Video strip. Drop files into public/media/ to replace the placeholders (see VideoSlot.astro). -->
+  <section class="home-film" aria-labelledby="film-title">
     <div class="wrap">
-      <h2>Services</h2>
-      <div class="services__list">
-        {
-          services.map((service) => (
-            <article class="service">
-              <h3>{service.title}</h3>
-              <div class="service__body">
-                <p class="service__tagline">{service.tagline}</p>
-                <p>{service.body}</p>
-              </div>
-            </article>
-          ))
-        }
+      <h2 id="film-title" class="home-film__title">What balance looks like</h2>
+      <div class="home-film__grid">
+        <VideoSlot
+          name="studio"
+          tone="teal"
+          caption="Classes people plan their week around."
+          brief="Video loop, 3 cuts: coach leading kettlebell swings in a high-energy class, reformer Pilates, dance class"
+          alt="A coach leads a kettlebell class, then a reformer Pilates class, then a dance class"
+        />
+        <VideoSlot
+          name="recovery"
+          tone="green"
+          caption="Recovery people do together."
+          brief="Video loop, 3 cuts: group breathwork circle, sauna then cold plunge together, hands-on bodywork in a calm, modern room"
+          alt="A breathwork circle, friends in a sauna and cold plunge, and hands-on bodywork"
+        />
+        <VideoSlot
+          name="service"
+          tone="stone"
+          caption="People who know why they stay."
+          brief="Video loop: hospitality-style service desk, warm wood, mid-century furniture, no screens, staff greeting a member by name"
+          alt="A host at a calm, mid-century style front desk greets a member by name"
+        />
       </div>
-      <p class="services__more"><a class="btn btn--outline" href="/services">See all services</a></p>
+    </div>
+  </section>
+
+  <!-- Services: side-scrolling cards with a drag slider -->
+  <section class="home-services" id="services" aria-labelledby="services-title" data-scroller>
+    <div class="wrap home-services__head">
+      <h2 id="services-title">What we work on</h2>
+      <p>Where wellness businesses tend to tip over, and how we bring them back. Drag or scroll sideways.</p>
+    </div>
+
+    <div class="home-services__track" tabindex="0" aria-label="Services, scroll sideways" data-scroller-track>
+      {
+        serviceCards.map((service, i) => (
+          <article class:list={['service-card', `service-card--${service.tone}`]}>
+            <p class="service-card__n">{pad(i + 1)}</p>
+            <div class="service-card__body">
+              <h3>{service.title}</h3>
+              <p class="service-card__tagline">{service.tagline}</p>
+              <ul>
+                {service.points.map((point) => (
+                  <li>{point}</li>
+                ))}
+              </ul>
+              <a class="service-card__link" href={`/services#${service.id}`}>
+                More on {service.title.toLowerCase()}
+              </a>
+            </div>
+          </article>
+        ))
+      }
+      <article class="service-card service-card--deep">
+        <p class="service-card__n">{pad(cardCount)}</p>
+        <div class="service-card__body">
+          <h3>Not sure where it starts?</h3>
+          <p class="service-card__tagline">Most problems touch all three.</p>
+          <a class="btn btn--teal" href="/services">See all services</a>
+        </div>
+      </article>
+    </div>
+
+    <div class="wrap home-services__controls">
+      <label for="services-scroll">Drag to explore</label>
+      <input id="services-scroll" type="range" min="0" max="100" step="1" value="0" data-scroller-range />
+      <span class="home-services__count" aria-live="polite"><span data-scroller-count>01</span> / {pad(cardCount)}</span>
     </div>
   </section>
 
@@ -133,6 +218,51 @@ const organization = {
     </div>
   </section>
 
+  {
+    latestPosts.length > 0 && (
+      <section class="section" id="insights" aria-labelledby="insights-title">
+        <div class="wrap">
+          <div class="home-blog__head">
+            <h2 id="insights-title">From the blog</h2>
+            <a href="/blog">All posts</a>
+          </div>
+          <ul class="home-blog">
+            {latestPosts.map((post) => {
+              const ref = post.coverImage?.asset?._ref;
+              const focal = focalOf(post.coverImage);
+              return (
+                <li class="home-blog__item">
+                  <a href={`/blog/${post.slug}`}>
+                    <div class="home-blog__thumb">
+                      {ref ? (
+                        <img
+                          src={imageUrl(ref, { w: 640, h: 480, focal })}
+                          srcset={`${imageUrl(ref, { w: 640, h: 480, focal })} 640w, ${imageUrl(ref, { w: 1280, h: 960, focal })} 1280w`}
+                          sizes="(min-width: 900px) 360px, 100vw"
+                          width="640"
+                          height="480"
+                          alt={post.coverImage?.alt ?? ''}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      ) : (
+                        <Logo kind="symbol" tone="gradient" uid={`post-${post._id}`} class="home-blog__mark" />
+                      )}
+                    </div>
+                    <p class="home-blog__date">
+                      <time datetime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
+                    </p>
+                    <h3>{post.title}</h3>
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
   <section class="section section--navy" id="about">
     <div class:list={['wrap', 'about', photo && 'about--photo']}>
       <div class="about__text">
@@ -166,11 +296,8 @@ const organization = {
   <section class="section" id="contact">
     <div class="wrap contact">
       <div class="contact__intro">
-        <h2>Let's discuss your goals</h2>
-        <p class="lead">
-          Reach out to the EQLBRM team to explore how our expertise can elevate your business. We look forward to
-          collaborating with you on your journey to sustainable growth and success.
-        </p>
+        <h2>What's out of balance?</h2>
+        <p class="lead">A short call is the easiest place to start. No deck, no pitch.</p>
         <p><a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
         {SITE.bookingUrl && <p><a class="btn btn--outline" href={SITE.bookingUrl}>Book a call</a></p>}
       </div>
@@ -178,3 +305,65 @@ const organization = {
     </div>
   </section>
 </Base>
+
+<script>
+  // Side-scrolling services: keep the slider, the counter and the track in step.
+  document.querySelectorAll<HTMLElement>('[data-scroller]').forEach((root) => {
+    const track = root.querySelector<HTMLElement>('[data-scroller-track]');
+    const range = root.querySelector<HTMLInputElement>('[data-scroller-range]');
+    const count = root.querySelector<HTMLElement>('[data-scroller-count]');
+    if (!track || !range) return;
+    const total = track.children.length;
+    const maxScroll = () => Math.max(0, track.scrollWidth - track.clientWidth);
+    const setCount = (pct: number) => {
+      if (count) count.textContent = String(Math.min(total, Math.round((pct / 100) * (total - 1)) + 1)).padStart(2, '0');
+    };
+    const sync = () => {
+      // Hide the slider when everything already fits on screen.
+      root.classList.toggle('is-static', maxScroll() < 4);
+    };
+
+    let ticking = false;
+    track.addEventListener('scroll', () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const max = maxScroll();
+        const pct = max > 0 ? Math.round((track.scrollLeft / max) * 100) : 0;
+        range.value = String(pct);
+        setCount(pct);
+        ticking = false;
+      });
+    });
+
+    range.addEventListener('input', () => {
+      const pct = Number(range.value);
+      track.scrollTo({ left: (pct / 100) * maxScroll(), behavior: 'auto' });
+      setCount(pct);
+    });
+
+    window.addEventListener('resize', sync);
+    sync();
+  });
+
+  // Looping videos play only while on screen, and never for people who prefer reduced motion.
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const videos = document.querySelectorAll<HTMLVideoElement>('[data-loop-video]');
+  if (!reduceMotion && videos.length) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const video = entry.target as HTMLVideoElement;
+          if (entry.isIntersecting) {
+            video.preload = 'auto';
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        }
+      },
+      { rootMargin: '200px 0px' },
+    );
+    videos.forEach((video) => io.observe(video));
+  }
+</script>

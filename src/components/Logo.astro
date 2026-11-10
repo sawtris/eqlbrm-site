@@ -3,6 +3,7 @@ import { LOCKUP, SYMBOL, WORDMARK } from '../lib/logoPaths';
 
 interface Props {
   kind?: 'symbol' | 'wordmark' | 'lockup';
+  /** gradient = full color: teal circle, green bar, teal-to-green wordmark. */
   tone?: 'gradient' | 'white' | 'navy';
   /** Unique per instance on a page so gradients never collide. */
   uid?: string;
@@ -11,41 +12,39 @@ interface Props {
 }
 
 const { kind = 'symbol', tone = 'gradient', uid = 'logo', label, class: className } = Astro.props;
-const data = kind === 'symbol' ? SYMBOL : kind === 'wordmark' ? WORDMARK : LOCKUP;
+const box = kind === 'symbol' ? SYMBOL : kind === 'wordmark' ? WORDMARK : LOCKUP;
+const pieces = kind === 'symbol' ? SYMBOL.pieces : kind === 'lockup' ? LOCKUP.pieces : [];
+const wordD = kind === 'wordmark' ? WORDMARK.d : kind === 'lockup' ? LOCKUP.wordmark : '';
+// The gradient runs across the wordmark only, wherever it sits in the artwork.
+const wordX = kind === 'lockup' ? LOCKUP.wordmarkX : 0;
+const wordW = WORDMARK.w;
+
 const gradientId = `eqlbrm-grad-${uid}`;
-const fill = tone === 'gradient' ? `url(#${gradientId})` : tone === 'white' ? '#ffffff' : '#0B132B';
+const solid = tone === 'white' ? '#ffffff' : '#0B132B';
+const circleFill = tone === 'gradient' ? '#00C2D1' : solid;
+const barFill = tone === 'gradient' ? '#31D16C' : solid;
+const wordFill = tone === 'gradient' ? `url(#${gradientId})` : solid;
 ---
 
 <svg
   class={className}
-  viewBox={`0 0 ${data.w} ${data.h}`}
+  viewBox={`0 0 ${box.w} ${box.h}`}
   role={label ? 'img' : undefined}
   aria-label={label}
   aria-hidden={label ? undefined : 'true'}
   focusable="false"
 >
   {
-    tone === 'gradient' && (
+    tone === 'gradient' && wordD && (
       <defs>
-        <linearGradient id={gradientId} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2={data.w} y2="0">
+        <linearGradient id={gradientId} gradientUnits="userSpaceOnUse" x1={wordX} y1="0" x2={wordX + wordW} y2="0">
           <stop offset="0" stop-color="#00C2D1" />
           <stop offset="1" stop-color="#31D16C" />
         </linearGradient>
       </defs>
     )
   }
-  <g fill={fill} fill-rule="evenodd">
-    {
-      kind === 'wordmark' ? (
-        <path d={(data as typeof WORDMARK).d} />
-      ) : (
-        <>
-          {(data as typeof SYMBOL).pieces.map((d, i) => (
-            <path class={i === 0 ? 'mark-left' : 'mark-right'} d={d} />
-          ))}
-          {kind === 'lockup' && <path d={(LOCKUP as typeof LOCKUP).wordmark} />}
-        </>
-      )
-    }
-  </g>
+  {pieces.length > 0 && <path class="mark-circle" fill={circleFill} d={pieces[0]} />}
+  {pieces.length > 1 && <path class="mark-bar" fill={barFill} d={pieces[1]} />}
+  {wordD && <path fill={wordFill} d={wordD} />}
 </svg>
