@@ -1,0 +1,54 @@
+---
+// A 4:5 looping video tile for the "What balance looks like" strip.
+// Drop files into public/media/ and they replace the placeholder automatically:
+//   <name>.mp4 (or .webm)  the silent loop
+//   <name>.jpg (or .webp)  the still shown while the video loads, and the fallback for reduced motion
+import { firstExisting } from '../lib/assets';
+
+interface Props {
+  name: string;
+  caption: string;
+  /** What the clip should show. Visible only while the slot is a placeholder. */
+  brief: string;
+  /** Short description of the clip for screen readers once real footage is in. */
+  alt: string;
+  tone?: 'teal' | 'green' | 'stone';
+}
+
+const { name, caption, brief, alt, tone = 'teal' } = Astro.props;
+const video = firstExisting([`media/${name}.mp4`, `media/${name}.webm`]);
+const videoType = video?.endsWith('.webm') ? 'video/webm' : 'video/mp4';
+const poster = firstExisting([`media/${name}.jpg`, `media/${name}.webp`, `media/${name}.png`]);
+---
+
+<figure class:list={['video-slot', `video-slot--${tone}`]}>
+  <div class="video-slot__frame">
+    {
+      video ? (
+        <video
+          data-loop-video
+          poster={poster ?? undefined}
+          muted
+          loop
+          playsinline
+          preload="none"
+          aria-label={alt}
+        >
+          <source src={video} type={videoType} />
+        </video>
+      ) : poster ? (
+        <img src={poster} alt={alt} loading="lazy" decoding="async" />
+      ) : (
+        <div class="video-slot__placeholder">
+          <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
+            <circle cx="20" cy="20" r="19" fill="none" stroke="currentColor" stroke-width="1.5" />
+            <path d="M16 13 L28 20 L16 27 Z" fill="currentColor" />
+          </svg>
+          <span class="video-slot__brief">{brief}</span>
+          <span class="video-slot__file">public/media/{name}.mp4</span>
+        </div>
+      )
+    }
+  </div>
+  <figcaption>{caption}</figcaption>
+</figure>
