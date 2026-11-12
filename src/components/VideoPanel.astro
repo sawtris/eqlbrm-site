@@ -1,9 +1,10 @@
 ---
-// One full-screen video panel for "What balance looks like".
-// Drop files into public/media/ and they replace the placeholder automatically:
-//   <name>.mp4 (or .webm)   landscape 16:9 loop, silent; used on laptops and desktops
-//   <name>-mobile.mp4       optional portrait 4:5 loop for phones (falls back to the landscape file)
-//   <name>.jpg (or .webp)   still frame shown while the video loads and for people who prefer reduced motion
+// One panel of "What balance looks like": the copy card, the portrait video in a tall frame, and a soft
+// blurred wash of the same scene filling the rest of the screen.
+// Files in public/media/ replace the placeholder automatically:
+//   <name>.mp4 (or .webm)   portrait 4:5 loop, silent (1080x1350)
+//   <name>-mobile.mp4       optional smaller copy for phones (720x900)
+//   <name>.jpg (or .webp)   still frame: shown while the video loads, for reduced motion, and as the backdrop
 import { firstExisting } from '../lib/assets';
 
 interface Props {
@@ -32,21 +33,9 @@ const headingId = `film-${name}`;
 ---
 
 <section class:list={['hpanel', 'film-panel', `film-panel--${tone}`]} aria-labelledby={headingId} data-reveal>
-  <div class="film-panel__media" data-parallax>
-    {
-      video ? (
-        <video data-loop-video muted loop playsinline preload="none" poster={poster ?? undefined} aria-label={alt}>
-          {mobile && <source src={mobile} type={type(mobile)} media="(max-width: 899px)" />}
-          <source src={video} type={type(video)} />
-        </video>
-      ) : poster ? (
-        <img src={poster} alt={alt} loading="lazy" decoding="async" />
-      ) : (
-        <div class="film-panel__placeholder" aria-hidden="true" />
-      )
-    }
+  <div class="film-panel__backdrop" aria-hidden="true">
+    {poster ? <img src={poster} alt="" loading="lazy" decoding="async" /> : <div class="film-panel__wash" />}
   </div>
-  <div class="film-panel__scrim" aria-hidden="true"></div>
 
   <div class="wrap film-panel__inner">
     <div class="film-panel__card">
@@ -61,6 +50,21 @@ const headingId = `film-${name}`;
         {points.map((point) => <li>{point}</li>)}
       </ul>
       <a class="film-panel__link" href={link.href}>{link.label} <span aria-hidden="true">&rarr;</span></a>
+    </div>
+
+    <div class="film-panel__frame" data-parallax>
+      {
+        video ? (
+          <video data-loop-video muted loop playsinline preload="none" poster={poster ?? undefined} aria-label={alt}>
+            {mobile && <source src={mobile} type={type(mobile)} media="(max-width: 899px)" />}
+            <source src={video} type={type(video)} />
+          </video>
+        ) : poster ? (
+          <img src={poster} alt={alt} loading="lazy" decoding="async" />
+        ) : (
+          <div class="film-panel__wash" aria-hidden="true" />
+        )
+      }
     </div>
   </div>
 </section>

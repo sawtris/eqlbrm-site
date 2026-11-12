@@ -16,7 +16,7 @@ public/         favicon, OG image, robots.txt, headers
 - **Founder photo:** save as `public/images/tristan.jpg` (or .png / .webp). It appears in the About section automatically.
 - **Client logos:** save as `public/logos/<name>.svg` (or .png / .webp) using these names: `razorfish`, `equinox`, `fhitting-room`, `pwc`, `aescape`. Each one replaces its text name automatically.
 - **Booking button:** paste your Cal.com link into `bookingUrl` in `src/config.ts`.
-- **Homepage videos:** "What balance looks like" has three full-screen panels named `studio`, `recovery` and `service`. Save each as `public/media/<name>.mp4`: landscape 16:9, silent, a seamless 10 to 20 second loop, ideally under 6 MB. Add `public/media/<name>-mobile.mp4` (portrait 4:5) for phones if you have one, and `public/media/<name>.jpg` as a still. Until a file is there, the panel shows a soft brand-colored wash.
+- **Homepage videos:** "What balance looks like" has three panels named `studio`, `recovery` and `service`. Each uses `public/media/<name>.mp4` (portrait 4:5, 1080x1350, silent loop), `<name>-mobile.mp4` (720x900, for phones) and `<name>.jpg` (the first frame, used as the still and the blurred backdrop). To replace a video, re-encode with: `ffmpeg -i in.mp4 -an -c:v libx264 -preset veryfast -crf 24 -pix_fmt yuv420p -movflags +faststart -vf scale=1080:1350 <name>.mp4` (and `-crf 26 -vf scale=720:900` for the mobile copy).
 
 ## Run it locally (optional)
 
