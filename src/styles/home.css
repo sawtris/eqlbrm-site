@@ -1,4 +1,4 @@
-/* Homepage only: motion hero, operator intro, video strip, blog row, sideways page. */
+/* Homepage only: motion hero, operator intro, video panels, blog row, sideways page. */
 
 .eyebrow {
   margin: 0;
@@ -147,86 +147,211 @@
   font-size: 0.95rem;
 }
 
-/* ---------- Video strip ---------- */
+/* ---------- What balance looks like: full-screen video panels ---------- */
 
-.home-film {
-  padding-bottom: clamp(4rem, 9vw, 7rem);
-}
-
-.home-film__title {
-  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
-  margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
-}
-
-.home-film__grid {
-  display: grid;
-  gap: 1.25rem;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-}
-
-.video-slot {
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.video-slot__frame {
-  aspect-ratio: 4 / 5;
-  border-radius: 20px;
+.film-panel {
+  position: relative;
   overflow: hidden;
+  isolation: isolate;
+  min-height: min(88vh, 46rem);
+  display: flex;
+  align-items: flex-end;
+  color: var(--navy);
 }
 
-.video-slot__frame video,
-.video-slot__frame img {
+.film-panel__media {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+}
+
+.film-panel__media video,
+.film-panel__media img,
+.film-panel__placeholder {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.video-slot--teal .video-slot__frame {
-  background: #ddf3f5;
-  color: #00616b;
+/* Until the footage arrives: a slow wash in the panel's brand tone. */
+.film-panel__placeholder {
+  background-size: 220% 220%;
 }
 
-.video-slot--green .video-slot__frame {
-  background: #ddf6e6;
-  color: #1b6b3a;
+.film-panel--teal .film-panel__placeholder {
+  background-image: radial-gradient(circle at 25% 30%, #bfeef2, transparent 55%),
+    radial-gradient(circle at 75% 70%, #8fe3ea, transparent 60%), linear-gradient(120deg, #e3f7f9, #c7eef2);
 }
 
-.video-slot--stone .video-slot__frame {
-  background: #e6edf3;
-  color: var(--text);
+.film-panel--green .film-panel__placeholder {
+  background-image: radial-gradient(circle at 70% 30%, #c4f0d4, transparent 55%),
+    radial-gradient(circle at 25% 75%, #a6e9c0, transparent 60%), linear-gradient(120deg, #e6f8ec, #cdf1da);
 }
 
-.video-slot__placeholder {
-  height: 100%;
+.film-panel--stone .film-panel__placeholder {
+  background-image: radial-gradient(circle at 30% 30%, #efe6da, transparent 55%),
+    radial-gradient(circle at 75% 70%, #e2d6c6, transparent 60%), linear-gradient(120deg, #f6f1ea, #ebe3d8);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .film-panel__placeholder {
+    animation: film-wash 18s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes film-wash {
+  from {
+    background-position: 0% 0%;
+  }
+  to {
+    background-position: 100% 100%;
+  }
+}
+
+/* Keeps the copy readable over any footage. */
+.film-panel__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgb(247 249 250 / 0.55) 0%, rgb(247 249 250 / 0.15) 45%, transparent 70%);
+  pointer-events: none;
+}
+
+.film-panel__inner {
+  width: 100%;
+  padding-block: clamp(2rem, 5vw, 3.5rem);
+}
+
+.film-panel__card {
+  max-width: 34rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 1.5rem;
-  text-align: center;
+  gap: 0.85rem;
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  border-radius: 24px;
+  background: rgb(247 249 250 / 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 20px 50px rgb(11 19 43 / 0.08);
 }
 
-.video-slot__brief {
-  font-size: 0.9rem;
+.film-panel__meta {
+  margin: 0 0 0.25rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  line-height: 1.45;
-  max-width: 18em;
+  color: var(--muted);
 }
 
-.video-slot__file {
-  font-size: 0.75rem;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  opacity: 0.75;
+.film-panel__count {
+  font-variant-numeric: tabular-nums;
+  color: var(--navy);
 }
 
-.video-slot figcaption {
+.film-panel h2 {
+  margin: 0;
+  font-size: clamp(2rem, 3.6vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.film-panel__body {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.55;
   color: var(--text);
-  font-size: 1rem;
+}
+
+.film-panel__points {
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.film-panel__points li {
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.film-panel__link {
+  align-self: flex-start;
+  margin-top: 0.4rem;
+  font-weight: 650;
+  color: var(--teal-text);
+  text-decoration: none;
+}
+
+.film-panel__link:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.film-panel__link span {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.film-panel__link:hover span {
+  transform: translateX(4px);
+}
+
+/* Copy rises in the first time a panel comes into view. */
+@media (prefers-reduced-motion: no-preference) {
+  .will-reveal .film-panel__card > * {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.6s ease, transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .will-reveal.is-revealed .film-panel__card > * {
+    opacity: 1;
+    transform: none;
+  }
+
+  .is-revealed .film-panel__card > :nth-child(2) { transition-delay: 0.06s; }
+  .is-revealed .film-panel__card > :nth-child(3) { transition-delay: 0.12s; }
+  .is-revealed .film-panel__card > :nth-child(4) { transition-delay: 0.18s; }
+  .is-revealed .film-panel__card > :nth-child(5) { transition-delay: 0.24s; }
+  .is-revealed .film-panel__card > :nth-child(6) { transition-delay: 0.3s; }
+}
+
+/* Phones: footage on top in portrait, copy below it. */
+@media (max-width: 899px) {
+  .film-panel {
+    display: block;
+    min-height: 0;
+  }
+
+  .film-panel__media {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    max-height: 75vh;
+    width: 100%;
+  }
+
+  .film-panel__scrim {
+    display: none;
+  }
+
+  .film-panel__inner {
+    margin-top: -3rem;
+    padding-top: 0;
+  }
+
+  .film-panel__card {
+    box-shadow: 0 10px 30px rgb(11 19 43 / 0.08);
+  }
 }
 
 /* ---------- Blog row ---------- */
@@ -405,20 +530,23 @@
   }
 }
 
-/* Video strip: tiles sized by the screen height so all three fit. */
-.is-horizontal .home-film__grid {
+/* Video panels fill the screen; the footage is a little wider so it can drift as the row moves. */
+.is-horizontal .film-panel {
+  min-height: 0;
+  padding-block: 0;
+  justify-content: flex-end;
+}
+
+.is-horizontal .film-panel__media {
+  left: -12%;
+  right: -12%;
+  will-change: transform;
+}
+
+.is-horizontal .film-panel__inner {
+  height: 100%;
   display: flex;
-  gap: 1.25rem;
-}
-
-.is-horizontal .video-slot {
-  flex: 0 1 auto;
-}
-
-.is-horizontal .video-slot__frame {
-  height: min(54vh, 30rem);
-  width: auto;
-  aspect-ratio: 4 / 5;
+  align-items: flex-end;
 }
 
 /* Testimonials and About get a little more room than one screen. */

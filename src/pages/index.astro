@@ -4,7 +4,7 @@ import Logo from '../components/Logo.astro';
 import ContactForm from '../components/ContactForm.astro';
 import Footer from '../components/Footer.astro';
 import BalanceFlow from '../components/BalanceFlow.astro';
-import VideoSlot from '../components/VideoSlot.astro';
+import VideoPanel from '../components/VideoPanel.astro';
 import { SITE } from '../config';
 import { stats, testimonials, clients } from '../data';
 import { firstExisting } from '../lib/assets';
@@ -94,35 +94,43 @@ const organization = {
     </div>
   </section>
 
-  <!-- Video strip. Drop files into public/media/ to replace the placeholders (see VideoSlot.astro). -->
-  <section class="hpanel home-film" aria-labelledby="film-title">
-    <div class="wrap">
-      <h2 id="film-title" class="home-film__title">What balance looks like</h2>
-      <div class="home-film__grid">
-        <VideoSlot
-          name="studio"
-          tone="teal"
-          caption="Classes people plan their week around."
-          brief="Video loop, 3 cuts: coach leading kettlebell swings in a high-energy class, reformer Pilates, dance class"
-          alt="A coach leads a kettlebell class, then a reformer Pilates class, then a dance class"
-        />
-        <VideoSlot
-          name="recovery"
-          tone="green"
-          caption="Recovery people do together."
-          brief="Video loop, 3 cuts: group breathwork circle, sauna then cold plunge together, hands-on bodywork in a calm, modern room"
-          alt="A breathwork circle, friends in a sauna and cold plunge, and hands-on bodywork"
-        />
-        <VideoSlot
-          name="service"
-          tone="stone"
-          caption="People who know why they stay."
-          brief="Video loop: hospitality-style service desk, warm wood, mid-century furniture, no screens, staff greeting a member by name"
-          alt="A host at a calm, mid-century style front desk greets a member by name"
-        />
-      </div>
-    </div>
-  </section>
+  <!-- What balance looks like: one full-screen panel per video. Files go in public/media/ (see VideoPanel.astro). -->
+  <VideoPanel
+    name="studio"
+    index={1}
+    total={3}
+    tone="teal"
+    eyebrow="The studio"
+    title="Classes people plan their week around."
+    body="A full class starts long before the doors open. We help studios get the formats, the timetable and the price right, so every class earns its spot."
+    points={['Class formats and timetable', 'Pricing, packs and memberships', 'Launch plans for new concepts']}
+    link={{ href: '/services#business-strategy', label: 'How we help studios' }}
+    alt="An empty, sunlit boutique studio set up for class"
+  />
+  <VideoPanel
+    name="recovery"
+    index={2}
+    total={3}
+    tone="green"
+    eyebrow="Recovery"
+    title="Recovery people do together."
+    body="Sauna, cold plunge, breathwork and bodywork are now a reason to join, not an add-on. We help you design the offer, price it and run it at a profit."
+    points={['Recovery concept and service menu', 'Space, staffing and booking flow', 'Pricing and P&L']}
+    link={{ href: '/services#financial-operational-services', label: 'How we help with recovery' }}
+    alt="A calm recovery space with a sauna, cold plunge and treatment room"
+  />
+  <VideoPanel
+    name="service"
+    index={3}
+    total={3}
+    tone="stone"
+    eyebrow="The front desk"
+    title="People who know why they stay."
+    body="Members decide whether to stay at the front desk and in every moment after it. We map the member journey, fix the systems behind it and give your team the playbook."
+    points={['Member journey and service standards', 'CRM, app and booking systems', 'Retention reporting']}
+    link={{ href: '/services#digital-strategy', label: 'How we help with service' }}
+    alt="A calm, mid-century style front desk with warm wood and no screens"
+  />
 
 
   <section class="hpanel section" id="testimonials">
@@ -267,6 +275,23 @@ const organization = {
 </Base>
 
 <script>
+  // Video panel text rises in the first time each panel comes into view.
+  const revealIo = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-revealed');
+          revealIo.unobserve(entry.target);
+        }
+      }
+    },
+    { threshold: 0.35 },
+  );
+  document.querySelectorAll('[data-reveal]').forEach((el) => {
+    el.classList.add('will-reveal');
+    revealIo.observe(el);
+  });
+
   // Looping videos play only while on screen, and never for people who prefer reduced motion.
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const videos = document.querySelectorAll<HTMLVideoElement>('[data-loop-video]');
@@ -307,6 +332,7 @@ const organization = {
     let start = 0;
     let headerH = 0;
     let ticking = false;
+    const parallax = [...track.querySelectorAll<HTMLElement>('[data-parallax]')];
 
     const isHome = (path: string) => path === '/' || path === '/index' || path === '/index.html';
 
@@ -316,6 +342,14 @@ const organization = {
       const x = Math.min(max, Math.max(0, window.scrollY - start));
       track!.style.transform = `translate3d(${-x}px, 0, 0)`;
       html.style.setProperty('--hscroll-progress', max ? String(x / max) : '0');
+      // Video panels drift a little slower than the row, so the footage feels deeper than the page.
+      if (!reduce.matches) {
+        for (const media of parallax) {
+          const panel = media.parentElement!;
+          const offset = (panel.offsetLeft - x) / window.innerWidth;
+          if (offset > -1.2 && offset < 1.2) media.style.transform = `translate3d(${(-offset * 18).toFixed(2)}%, 0, 0)`;
+        }
+      }
     }
 
     function measure() {
@@ -328,6 +362,7 @@ const organization = {
         if (!on) {
           wrap!.style.height = '';
           track!.style.transform = '';
+          parallax.forEach((media) => (media.style.transform = ''));
           return;
         }
       }

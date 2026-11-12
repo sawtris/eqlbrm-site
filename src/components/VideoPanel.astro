@@ -1,0 +1,66 @@
+---
+// One full-screen video panel for "What balance looks like".
+// Drop files into public/media/ and they replace the placeholder automatically:
+//   <name>.mp4 (or .webm)   landscape 16:9 loop, silent; used on laptops and desktops
+//   <name>-mobile.mp4       optional portrait 4:5 loop for phones (falls back to the landscape file)
+//   <name>.jpg (or .webp)   still frame shown while the video loads and for people who prefer reduced motion
+import { firstExisting } from '../lib/assets';
+
+interface Props {
+  name: string;
+  index: number;
+  total: number;
+  eyebrow: string;
+  title: string;
+  /** What EQLBRM does in this area. */
+  body: string;
+  points: string[];
+  link: { href: string; label: string };
+  /** Screen-reader description of the footage. */
+  alt: string;
+  tone?: 'teal' | 'green' | 'stone';
+}
+
+const { name, index, total, eyebrow, title, body, points, link, alt, tone = 'teal' } = Astro.props;
+const pick = (base: string) => firstExisting([`media/${base}.mp4`, `media/${base}.webm`]);
+const video = pick(name);
+const mobile = pick(`${name}-mobile`);
+const poster = firstExisting([`media/${name}.jpg`, `media/${name}.webp`, `media/${name}.png`]);
+const type = (src: string) => (src.endsWith('.webm') ? 'video/webm' : 'video/mp4');
+const pad = (n: number) => String(n).padStart(2, '0');
+const headingId = `film-${name}`;
+---
+
+<section class:list={['hpanel', 'film-panel', `film-panel--${tone}`]} aria-labelledby={headingId} data-reveal>
+  <div class="film-panel__media" data-parallax>
+    {
+      video ? (
+        <video data-loop-video muted loop playsinline preload="none" poster={poster ?? undefined} aria-label={alt}>
+          {mobile && <source src={mobile} type={type(mobile)} media="(max-width: 899px)" />}
+          <source src={video} type={type(video)} />
+        </video>
+      ) : poster ? (
+        <img src={poster} alt={alt} loading="lazy" decoding="async" />
+      ) : (
+        <div class="film-panel__placeholder" aria-hidden="true" />
+      )
+    }
+  </div>
+  <div class="film-panel__scrim" aria-hidden="true"></div>
+
+  <div class="wrap film-panel__inner">
+    <div class="film-panel__card">
+      <p class="film-panel__meta">
+        <span>What balance looks like</span>
+        <span class="film-panel__count">{pad(index)} / {pad(total)}</span>
+      </p>
+      <p class="eyebrow">{eyebrow}</p>
+      <h2 id={headingId}>{title}</h2>
+      <p class="film-panel__body">{body}</p>
+      <ul class="film-panel__points">
+        {points.map((point) => <li>{point}</li>)}
+      </ul>
+      <a class="film-panel__link" href={link.href}>{link.label} <span aria-hidden="true">&rarr;</span></a>
+    </div>
+  </div>
+</section>
